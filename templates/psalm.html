@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block navigation %}
+<a href="/">ראשי</a> • מזמור {{ psalm.hebrew_fancy_number }}
+{% endblock %}
+
+{% block content %}
+<h1>מזמור {{ psalm.hebrew_fancy_number }}</h1>
+<a href="/{{ psalm.number }}/edit" class="button">✏️ ערוך</a>
+<p>{{ psalm.hebrew_description }}</p>
+<section class="psalm scriptures">
+	{% for paragraph in psalm.layout %}
+	<section class="paragraph">
+		{% for verse_lines in paragraph %}
+		<div class="verse">
+			{% for line in verse_lines %}
+			<div class="line">
+				{% for word in line %}
+				{{ word.text }}
+				{% endfor %}
+			</div>
+			{% endfor %}
+		</div>
+		{% endfor %}
+	</section>
+	{% endfor %}
+</section>
+
+<table>
+	<tr>
+		<th>פסוק</th>
+		<th>מקורי</th>
+		<th>יצירת משוכפל</th>
+		<th>משוכפל</th>
+		<th>עריכת שמע</th>
+		<th>אורך</th>
+	</tr>
+	{% for verse in psalm.verses %}
+	<tr>
+		<td><a name="{{ verse.number }}">פסוק {{ verse.number }}</a></td>
+		<td>
+			{% if audio.has_original_audio(verse) %}
+			<div class="visual-player" data-audio="/audio/original/027.{{ '%03d' % psalm.number }}.{{ '%03d' % verse.number }}.mp3"></div>
+			{% endif %}
+		</td>
+		<td>
+			{% if audio.has_original_audio(verse) %}
+			<a class="button" href="/clone-verse/27/{{ psalm.number }}/{{ verse.number }}">⚡</a>
+			{% endif %}
+		</td>
+		<td>
+			{% if audio.has_cloned_audio(verse) %}
+			<div class="visual-player" data-audio="/audio/cloned/027.{{ '%03d' % psalm.number }}.{{ '%03d' % verse.number }}.mp3"></div>
+			{% endif %}
+		</td>
+		<td>
+			<a class="button" href="/{{ psalm.number }}/{{ verse.number }}/audio">✏️</a>
+		</td>
+		<td>
+			{% if audio.has_cloned_audio(verse) %}
+				{% set dur = audio.cloned_duration(verse) %}
+				{{ "%02d:%02d"|format(dur // 60, dur % 60) }}
+			{% endif %}
+		</td>
+	</tr>
+	{% endfor %}
+</table>
+
+<a class="button" href="/export/covers/{{ psalm.number }}">Export Covers</a>
+<hr/>
+<a class="button" href="/export/audio/{{ psalm.number }}">Export Audio</a>
+<a class="button" href="/export/audio/score/{{ psalm.number }}">Export Score Audio</a>
+<hr/>
+<a class="button" href="/export/video/horizontal/{{ psalm.number }}">Export H Video</a>
+<a class="button" href="/export/video/score/{{ psalm.number }}">Export Score Video</a>
+<a class="button" href="/export/video/score/horizontal/{{ psalm.number }}">Export Score H Video</a>
+<a class="button" href="/export/video/cinematic/{{ psalm.number }}">Export Cinematic Video</a>
+<hr/>
+<a class="button" href="/clone/{{ psalm.number }}">👥 שכפול כל הפסוקים החסרים</a>
+<a class="button" href="/{{ psalm.number }}/align">📐 עריכת גריד (BPM)</a>
+<a class="button" href="/align/{{ psalm.number }}">📐</a>
+<hr/>
+{% for name in descriptions %}
+<button onclick="clipboard('{{ name }}')">{{ name }}</button>
+{% endfor %}
+
+<script>
+const descriptions = {
+	{% for name, text in descriptions.items() %}
+"{{ name }}": `{{ text | replace('`', '\\`') | replace('${', '\\${') | safe }}`{% if not loop.last %},{% endif %}
+	{% endfor %}
+};
+function clipboard(name) {
+	const text = descriptions[name];
+	navigator.clipboard.writeText(text);
+}
+</script>
+{% endblock %}

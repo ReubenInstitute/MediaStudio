@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>מאמרים</h1>
+<ul>
+	{% for article in articles %}
+	<li><a href="/bible/articles/{{ article.slug }}">{{ article.hebrew_title }}</a></li>
+	{% endfor %}
+</ul>
+{% endblock %}

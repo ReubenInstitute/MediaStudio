@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block navigation %}
+<a href="/">ראשי</a> • <a href="/bible/parashot">פרשות</a> • <a href="/bible/parashot/{{ parashah.number }}">{{ parashah.hebrew_name }}</a>
+{% endblock %}
+
+{% block content %}
+<h1>{{ parashah.hebrew_name }}</h1>
+<a href="/bible/parashot/{{ number }}/edit">edit</a>
+<a href="/bible/parashot/{{ number }}/pdf">PDF</a>
+<h2>פרקים</h2>
+<table>
+	<tr>
+		<th>מספר</th>
+		<th>שם</th>
+		<th>מקורי</th>
+		<th>משוכפל</th>
+		<th>צבע</th>
+	</tr>
+	{% for episode in parashah.episodes %}
+	<tr>
+		<td>{{ episode.number }}</td>
+		<td><a href="/bible/parashot/{{ parashah.number }}/{{ episode.number }}">{{ episode.hebrew_title }}</a></td>
+		<td>{#{ data.original_duration }#}</td>
+		<td>{#{ data.cloned_duration }#}</td>
+		<td style="background-color: {{ episode.color }}; width: 50px;"></td>
+	</tr>
+	{% endfor %}
+</table>
+<a href="/bible/parashot/{{ number }}/export-audio">🔊 Export Audio</a>
+<a href="/generate/video/parashot/{{ number }}/full">🎬 Full Parashah Video</a>
+{% endblock %}

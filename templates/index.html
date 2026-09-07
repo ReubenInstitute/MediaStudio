@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block navigation %}
+<a href="/">ראשי</a>
+{% endblock %}
+
+{% block content %}
+<h1>Studio</h1>
+<ul>
+	<li><a href="/bible/psalms">תהילים</a></li>
+	<li><a href="/bible/articles">מאמרים</a></li>
+	<li><a href="/bible/parashot">פרשות</a></li>
+</ul>
+
+{% for label, data in [("פרשות", stats.parashot), ("תהילים", stats.psalms)] %}
+<h3>{{ label }}</h3>
+<p>
+🔊 {{ data.original.count }} ({{ data.original.duration }})<br />
+👥 {{ data.cloned.count }} ({{ data.cloned.duration }})<br />
+🇺🇸 {{ data.english.count }} ({{ data.english.duration }})
+</p>
+{% endfor %}
+{% endblock %}

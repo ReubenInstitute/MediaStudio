@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block navigation %}
+<a href="/">ראשי</a> • <a href="/{{ psalm.number }}">מזמור {{ psalm.hebrew_number }}</a> • פסוק {{ v }}
+{% endblock %}
+
+{% block content %}
+<h1>Psalm {{ psalm.number }}:{{ v }} Audio Edit</h1>
+<p>{{ verse.text }}</p>
+<div id="waveform" class="marker-player" 
+		data-audio="/audio-27-{{ frm }}-{{ to }}.wav"
+		data-start="{{ start }}"
+		data-end="{{ end }}"
+		data-from="{{ frm }}"
+		 data-to="{{ to }}"></div>
+<form id="audio-form" action="/save-psalm-audio-timing" method="post">
+	<div>
+		<label for="start">Start time (seconds):</label>
+		<input id="start" name="start" value="{{ start }}">
+	</div>
+	<div>
+		<label for="end">End time (seconds):</label>
+		<input id="end" name="end" value="{{ end }}">
+	</div>
+	<input type="hidden" name="book" value="27">
+	<input type="hidden" name="chapter" value="{{ psalm.number }}">
+	<input type="hidden" name="verse" value="{{ v }}">
+	<button type="submit" name="save" value="save">Save</button>
+</form>
+{% endblock %}

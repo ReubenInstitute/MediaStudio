@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block navigation %}
+<a href="/">ראשי</a> • <a href="/{{ psalm.number }}">מזמור {{ psalm.hebrew_number }}</a> • עריכה
+{% endblock %}
+
+{% block content %}
+<h1>עריכת מזמור {{ psalm.hebrew_fancy_number }}</h1>
+
+<div style="margin: 10px 0;">
+	<button type="button" class="copy-btn" data-char="ׇ">אׇ</button>
+	<button type="button" class="copy-btn" data-char="ֽ">אֽ</button>
+	<button type="button" class="copy-btn" data-char="ֺ">וֺ</button>
+	<button type="button" class="copy-btn" data-char="“">“</button>
+	<button type="button" class="copy-btn" data-char="”">”</button>
+	<button type="button" class="copy-btn" data-char="—">—</button>
+	<button type="button" class="copy-btn" data-char="–">–</button>
+	<button type="button" class="copy-btn" data-char="־">־</button>
+</div>
+
+<form method="post">
+<button type="button" id="normalize-btn">נרמל</button>
+<button type="button" id="dagesh-btn">הוסף דגש חזק</button><br />
+	<textarea id="text" name="text">{{ psalm.markdown }}</textarea>
+	<br>
+	<button type="submit">Save</button>
+</form>
+
+<script>
+document.querySelectorAll('.copy-btn').forEach(btn => {
+	btn.addEventListener('click', async function() {
+		const char = this.getAttribute('data-char');
+		try {
+			await navigator.clipboard.writeText(char);
+			this.style.backgroundColor = '#d4edda';
+			setTimeout(() => this.style.backgroundColor = '', 200);
+		} catch (err) {
+			alert('Failed to copy');
+		}
+	});
+});
+
+document.getElementById('normalize-btn').addEventListener('click', async function() {
+	const textarea = document.getElementById('text');
+	const formData = new FormData();
+	formData.append('text', textarea.value);
+
+	const response = await fetch('/hebrew/normalize', {
+		method: 'POST',
+		body: formData
+	});
+	if (response.ok) {
+		textarea.value = await response.text();
+	} else {
+		alert('Normalization failed');
+	}
+});
+
+document.getElementById('dagesh-btn').addEventListener('click', async function() {
+	const textarea = document.getElementById('text');
+	const formData = new FormData();
+	formData.append('text', textarea.value);
+
+	const response = await fetch('/hebrew/dagesh_hazzak', {
+		method: 'POST',
+		body: formData
+	});
+	if (response.ok) {
+		textarea.value = await response.text();
+	} else {
+		alert('Adding dagesh hazzak failed');
+	}
+});
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block navigation %}
+<a href="/">ראשי</a> • <a href="/bible/articles">מאמרים</a> • <a href="/bible/articles/{{ article.slug }}">{{ article.title }}</a>
+{% endblock %}
+
+{% block content %}
+<h1>{{ article.hebrew_title }}</h1>
+<section class="article scriptures">
+	{% for paragraph in article.layout %}
+	<section class="paragraph">
+		{% for line in paragraph %}
+		<div class="line">
+			{% for word in line %}
+			{{ word.text }}
+			{% endfor %}
+		</div>
+		{% endfor %}
+	</section>
+	{% endfor %}
+</section>
+{% endblock %}

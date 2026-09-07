@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ parashah.hebrew_name }} - {{ episode.hebrew_title }} - {{ verse.chapter.book.hebrew_name }} {{ verse.chapter.hebrew_number }} {{ verse.hebrew_number }}
+({{ v }}/{{ len(parashah.verses) }})
+</h1>
+<p>{{ verse.text }}</p>
+<div id="waveform" class="marker-player" 
+	 data-audio="/audio-{{ parashah.book.number }}-{{ frm }}-{{ to }}.wav"
+	 data-start="{{ start }}"
+	 data-end="{{ end }}"
+	 data-from="{{ frm }}"
+	 data-to="{{ to }}"></div>
+<form id="audio-form" action="/save-parashah-audio-timing" method="post">
+	<button type="submit" name="next" value="next">
+		Save & Next Verse ({{ next_verse }})
+		<input type="hidden" name="next_verse" value="{{ v + 1 }}">
+	</button>
+	<button type="submit" name="save" value="save">Save</button>
+	<div>
+		<label for="start">Start time (seconds):</label>
+		<input id="start" name="start" value="{{ start }}">
+	</div>
+	<div>
+		<label for="end">End time (seconds):</label>
+		<input id="end" name="end" value="{{ end }}">
+	</div>
+	<input type="hidden" name="book" value="{{ parashah.book.number }}">
+	<input type="hidden" name="chapter" value="{{ verse.chapter.number }}">
+	<input type="hidden" name="verse" value="{{ v }}">
+	<input type="hidden" name="parashah" value="{{ parashah.number }}">
+	<input type="hidden" name="episode" value="{{ episode.number }}">
+</form>
+{% endblock %}
