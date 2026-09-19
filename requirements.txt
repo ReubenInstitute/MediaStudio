@@ -1,0 +1,13 @@
+# needs the ffmpeg program installed too (apt install ffmpeg)
+# ffmpeg-python, not the unrelated "ffmpeg" package, which shadows it
+ffmpeg-python
+elevenlabs
+flask
+jinja2
+markdown
+mutagen
+pillow
+fonttools
+pandas
+regex
+requests
