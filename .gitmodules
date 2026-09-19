@@ -10,3 +10,6 @@
 [submodule "audio/titles"]
 	path = audio/titles
 	url = https://github.com/ReubenInstitute/audiobible-titles
+[submodule "assets"]
+	path = assets
+	url = https://github.com/ReubenInstitute/Studio-assets
