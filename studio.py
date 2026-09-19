@@ -12,8 +12,8 @@ from Overlay import PsalmCover
 import markdown
 from Audio import PsalmAudio
 
-from BibleParashot import Parashot
-from BiblePsalms import Psalms
+from Parashot import Parashot
+from Psalms import Psalms
 
 app = Flask(__name__, template_folder="templates-studio")
 bible = Bible()
