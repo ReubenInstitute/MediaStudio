@@ -250,9 +250,23 @@ class PsalmVideo(Video):
 				if audio_duration < self.FADE_DURATION * 2:
 					audio_duration = self.FADE_DURATION * 2
 				segment_duration = self.FADE_DURATION + audio_duration + self.FADE_DURATION
-				image_path = os.path.join(BUILD_FOLDER, "images", "psalms",
-										  f"{self.psalm.number}.{paragraph.number}.{verse.number}.png")
-				verse_video = ffmpeg.input(image_path, loop=1, t=segment_duration)
+				prefix = os.path.join(BUILD_FOLDER, "images", "psalms",
+									  f"{self.psalm.number}.{paragraph.number}.{verse.number}")
+				# white until a word is spoken, yellow while it is; the timings count from the start of the audio
+				shown = []
+				now = 0.0
+				for number, (start, end) in sorted(audiobible.word_timings(verse).items()):
+					start += self.FADE_DURATION
+					end += self.FADE_DURATION
+					shown += [(f"{prefix}.png", start - now), (f"{prefix}.w{number}.png", end - start)]
+					now = end
+				shown.append((f"{prefix}.png", segment_duration - now))
+				list_path = f"{prefix}.txt"
+				with open(list_path, 'w') as f:
+					for path, seconds in shown:
+						f.write(f"file '{os.path.abspath(path)}'\nduration {seconds:.3f}\n")
+					f.write(f"file '{os.path.abspath(shown[-1][0])}'\n")
+				verse_video = ffmpeg.input(list_path, f='concat', safe=0).filter('fps', fps=25)
 				verse_video = verse_video.filter('scale', self.width, self.height)
 				verse_video = verse_video.filter('format', 'rgba')
 				verse_video = verse_video.filter('fade', type='in', alpha=1, duration=self.FADE_DURATION)

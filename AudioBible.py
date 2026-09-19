@@ -13,6 +13,7 @@ TITLES_CSV = AUDIO_FOLDER / "titles.csv"
 ORIGINAL_CSV = AUDIO_FOLDER / 'original.csv'
 CLONED_CSV = AUDIO_FOLDER / 'cloned.csv'
 ENGLISH_CSV = AUDIO_FOLDER / 'english.csv'
+ALIGNMENT_CSV = AUDIO_FOLDER / 'alignment.csv'
 
 class AudioBible:
 	_instance = None
@@ -28,8 +29,10 @@ class AudioBible:
 		self.cloned_durations = {}
 		self.english_durations = {}
 		self.timings = {}
+		self.alignment = {}
 		self._load_timings()
 		self.load_cloned_durations()
+		self.load_alignment()
 		with open(TITLES_CSV, 'r', encoding='utf-8') as f:
 			reader = csv.DictReader(f)
 			for row in reader:
@@ -82,6 +85,16 @@ class AudioBible:
 				used_durations.add(duration)
 				key = (book_number, chapter_number, verse_number)
 				self.cloned_durations[key] = duration
+
+	def load_alignment(self):
+		with open(ALIGNMENT_CSV, 'r', encoding='utf-8') as file:
+			for row in csv.DictReader(file):
+				key = (int(row['book']), int(row['chapter']), int(row['verse']))
+				self.alignment.setdefault(key, {})[int(row['word'])] = (float(row['start']), float(row['end']))
+
+	def word_timings(self, verse):
+		# {word number: (start, end)} in seconds from the start of the cloned verse audio
+		return self.alignment[(verse.chapter.book.number, verse.chapter.number, verse.number)]
 
 	def load_english_durations(self):
 		used_durations = set()

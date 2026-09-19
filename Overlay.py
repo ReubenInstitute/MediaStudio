@@ -365,10 +365,11 @@ class EpisodeParagraphVersePlate(NarrationParagraphVersePlate):
 
 
 class PoemVersePlate(Plate):
-	def __init__(self, slide, verse_num, size):
+	def __init__(self, slide, verse_num, size, highlight=0):
 		super().__init__(size)
 		self.slide = slide
 		self.verse_num = verse_num
+		self.highlight = highlight		# number of the word in yellow, 0 for none
 
 	@property
 	def footer(self):
@@ -394,12 +395,14 @@ class PoemVersePlate(Plate):
 
 		y = header_height + (safe_height - total_height) // 2
 
+		first = 1
 		for line in self.slide.layout:
 			text = ' '.join(word.text for word in line)
 			box = Image.bbox((0, 0), text, "TaameyFrankCLM-Medium.ttf", font.size)
 			line_height = box[3] - box[1]
-			# Draw all words in white (no highlight)
-			self.draw_centered(0, y, self.width, line, "ReuvenSerif.ttf", font.size, "#ffff00", rtl=True)
+			self.draw_centered(0, y, self.width, line, "ReuvenSerif.ttf", font.size, "#ffffff", rtl=True,
+					highlight=self.highlight, first=first)
+			first += len(line)
 			y += line_height
 
 
@@ -461,20 +464,23 @@ class PsalmVerseSlide(Asset):
 		return self.psalm.paragraphs[self.paragraph-1].layout[self.verse-1]
 
 	def export(self):
-		plate = PsalmVersePlate(self, self.size)
-		plate.export()
+		# the plain plate, then one for every word with that word in yellow
+		PsalmVersePlate(self, self.size).export()
+		for number in range(1, sum(len(line) for line in self.layout) + 1):
+			PsalmVersePlate(self, self.size, number).export()
 
 
 class PsalmVersePlate(PoemVersePlate):
 	FOLDER = "psalms"
 
-	def __init__(self, slide, size):
-		super().__init__(slide, slide.verse, size)
+	def __init__(self, slide, size, highlight=0):
+		super().__init__(slide, slide.verse, size, highlight)
 
 	@property
 	def filename(self):
+		word = f".w{self.highlight}" if self.highlight else ""
 		return os.path.join(BUILD_FOLDER, "images", self.FOLDER,
-				f"{self.slide.psalm.number}.{self.slide.paragraph}.{self.slide.verse}.png")
+				f"{self.slide.psalm.number}.{self.slide.paragraph}.{self.slide.verse}{word}.png")
 
 	@property
 	def footer(self):

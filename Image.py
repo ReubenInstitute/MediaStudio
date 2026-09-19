@@ -245,9 +245,9 @@ class Plate(Image):
 						   shadow=True, direction="rtl" if rtl else "ltr")
 			current_x += word_width + spacing
 
-	def draw_centered(self, x, y, width, words, font_filename, font_size, color, rtl=False, verse=None):
+	def draw_centered(self, x, y, width, words, font_filename, font_size, color, rtl=False, verse=None, highlight=None, first=1):
 		font = ImageFont.truetype(os.path.join(FONT_FOLDER, font_filename), font_size)
-		if verse is None:
+		if verse is None and highlight is None:
 			text = ' '.join(word.text for word in words)
 			bbox = Image.bbox((0, 0), text, font_filename, font_size)
 			text_width = bbox[2] - bbox[0]
@@ -255,15 +255,22 @@ class Plate(Image):
 			self.draw_text((int(center_x), int(y)), text, font_filename, font_size,
 						   color=color, shadow=True, direction="rtl" if rtl else "ltr")
 		else:
+			# the number of the word, from first, is what highlight refers to
+			numbered = list(enumerate(words, first))
 			if rtl:
-				words = list(reversed(words))
+				numbered = list(reversed(numbered))
 			space_width = Image.bbox((0, 0), ' ', font_filename, font_size)[2]
-			total_width = sum(Image.bbox((0, 0), word.text, font_filename, font_size)[2] for word in words)
-			total_width += space_width * (len(words) - 1)
-			current_x = x + (width - total_width) // 2
-			for word in words:
-				word_width = Image.bbox((0, 0), word.text, font_filename, font_size)[2]
+			widths = [Image.bbox((0, 0), word.text, font_filename, font_size)[2] for _, word in numbered]
+			# a word joined to the next one with a maqaf takes no space
+			gaps = [0 if (numbered[k + 1][1] if rtl else word).text.endswith(Hebrew.MAQAF) else space_width
+					for k, (_, word) in enumerate(numbered[:-1])]
+			current_x = x + (width - sum(widths) - sum(gaps)) // 2
+			for k, (number, word) in enumerate(numbered):
+				if highlight is not None:
+					yellow = number == highlight
+				else:
+					yellow = word.verse and word.verse.number == verse
 				self.draw_text((int(current_x), int(y)), word.text, font_filename, font_size,
-							   color=("#ffff00" if word.verse and word.verse.number == verse else color),
+							   color="#ffff00" if yellow else color,
 							   shadow=True, direction="rtl" if rtl else "ltr")
-				current_x += word_width + space_width
+				current_x += widths[k] + (gaps[k] if k < len(gaps) else 0)
