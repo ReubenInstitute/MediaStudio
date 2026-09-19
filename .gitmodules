@@ -1,0 +1,12 @@
+[submodule "audio/cloned"]
+	path = audio/cloned
+	url = https://github.com/ReubenInstitute/audiobible-shmueloff-darkknox2
+[submodule "audio/original"]
+	path = audio/original
+	url = https://github.com/ReubenInstitute/audiobible-shmueloff-original
+[submodule "audio/english"]
+	path = audio/english
+	url = https://github.com/ReubenInstitute/audiobible-darkknox2-english
+[submodule "audio/titles"]
+	path = audio/titles
+	url = https://github.com/ReubenInstitute/audiobible-titles
