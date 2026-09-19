@@ -29,9 +29,10 @@ from Overlay import PsalmCover
 import Media
 
 # ── Psalm list from the buffer (sorted) ──
-PSALM_NUMBERS = [16, 35, 41, 42, 44, 59, 77, 84, 86, 93, 99, 105, 129, 130, 137, 150]
-PSALM_NUMBERS = [32, 90, 8, 46, 75, 117, 47]
-
+#PSALM_NUMBERS = [16, 35, 41, 42, 44, 59, 77, 84, 86, 93, 99, 105, 129, 130, 137, 150, 32, 90, 8, 46, 75, 117, 47]
+#PSALM_NUMBERS = [32, 90, 8, 46, 75, 117, 47#]
+PSALM_NUMBERS = [44, 105, 86, 137, 99, 41, 52, 2, 66, 6, 70, 101, 10, 74, 125, 3]
+#[8, 46, 75, 90, 117, 32, 47, 84, 93, 16, 129, 42, 35, 77]
 def main():
 	bible = Bible()
 	psalms = Psalms(bible)
@@ -41,16 +42,16 @@ def main():
 		psalm = psalms[num - 1]
 
 		# Covers (square, vertical, horizontal) – fast, always regenerate.
-		for size in (Media.SD, Media.SDV, Media.SDH):
-			cover = PsalmCover(psalm, size)
-			if cover.image is not None:
-				cover.export()
-				print(f"  Cover {size}")
+		#for size in (Media.SD, Media.SDV, Media.SDH):
+		#	cover = PsalmCover(psalm, size)
+		#	if cover.image is not None:
+		#		cover.export()
+		#		print(f"  Cover {size}")
 
 		# Audio – fast, always regenerate.
-		PsalmAudio(psalm).export()				 # Library (bare narration)
-		PsalmAudio(psalm, music=True).export()	 # Score (with Suno)
-		print("  Audio exported")
+		#PsalmAudio(psalm).export()				 # Library (bare narration)
+		#PsalmAudio(psalm, music=True).export()	 # Score (with Suno)
+		#print("  Audio exported")
 
 		# Landscape Library video (horizontal, no music) – YouTube.
 		lib_h = PsalmVideo(psalm, size=Media.HDH)

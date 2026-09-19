@@ -31,7 +31,7 @@ from AudioBible import AudioBible
 
 @app.route('/')
 def index():
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 
 	def format_duration(seconds):
 		if seconds <= 0:
@@ -85,7 +85,7 @@ def index():
 
 @app.route('/bible/psalms')
 def psalms():
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 
 	def format_duration(seconds):
 		if seconds <= 0:
@@ -171,7 +171,7 @@ def psalms():
 
 @app.route('/xxxbible/psalms')
 def xxxpsalms():
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 
 	def format_duration(seconds):
 		if seconds <= 0:
@@ -250,7 +250,7 @@ def xxxpsalms():
 @app.route('/bible/psalms/<int:p>')
 def psalm(p):
 	psalm = bible.psalms[p-1]
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 
 	# Descriptions (unchanged)
 	template = open('descriptions.md', 'r', encoding='utf-8').read()
@@ -651,7 +651,7 @@ def serve_audio_segment(book, frm, to):
 def psalm_audio_edit(p, v):
 	psalm = bible.psalms[p - 1]
 	verse = psalm.verses[v - 1]
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 
 	# Get the start/end for this verse
 	if audio.has_original_audio(verse):
@@ -769,7 +769,7 @@ def save_psalm_audio_timing():
 	# Get the verse object
 	verse = bible.verse(book - 1, chapter, verse_num)
 
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 	audio.set_timing(verse, start, end)
 
 	if 'next' in request.form:

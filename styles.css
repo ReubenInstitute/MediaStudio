@@ -230,6 +230,11 @@ textarea {
 	font-size: 1.8em;
 }
 
+.rtl {
+	direction: rtl;
+	text-align: right;
+}
+
 button,
 a.button {
 	border: 1px solid;

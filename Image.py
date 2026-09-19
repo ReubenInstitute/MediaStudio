@@ -29,7 +29,7 @@ def _get_extreme_chars(filename):
 
 	top_extreme = ""
 	min_top_y = 10000
-	for letter in Hebrew.LETTERS:
+	for letter in Hebrew.PLAIN_LETTERS:
 		if not has_glyph(letter):
 			continue
 		for cant in Hebrew.UPPER_CANTILLATIONS:
@@ -43,7 +43,7 @@ def _get_extreme_chars(filename):
 
 	bottom_extreme = ""
 	max_bottom_y = -10000
-	for letter in Hebrew.LETTERS:
+	for letter in Hebrew.PLAIN_LETTERS:
 		if not has_glyph(letter):
 			continue
 		for diac in Hebrew.DIACRITICS + Hebrew.HATAFS:

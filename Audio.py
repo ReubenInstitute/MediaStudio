@@ -23,7 +23,7 @@ class PsalmAudio:
 
 	def __init__(self, psalm, music=False):
 		self.psalm = psalm
-		self.audiobible = AudioBible()
+		self.audiobible = AudioBible.get_instance()
 		self.music = music
 
 	@property
@@ -141,7 +141,7 @@ class ODSPsalmAudio:
 
 	def __init__(self, psalm):
 		self.psalm = psalm
-		self.audiobible = AudioBible()
+		self.audiobible = AudioBible.get_instance()
 	
 	@property
 	def basename(self):
@@ -290,7 +290,7 @@ class ODSPsalmAudio:
 class ParashahAudio():
 	def __init__(self, parashah):
 		self.parashah = parashah
-		self.audiobible = AudioBible()
+		self.audiobible = AudioBible.get_instance()
 
 	@property
 	def basename(self):
@@ -683,7 +683,7 @@ class EpisodeAudio:
 
 	def __init__(self, episode):
 		self.episode = episode
-		self.audiobible = AudioBible()
+		self.audiobible = AudioBible.get_instance()
 
 	@property
 	def basename(self):

@@ -18,7 +18,7 @@ bible.psalms = Psalms(bible)
 
 @app.route('/')
 def index():
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 	def format_duration(seconds):
 		if seconds <= 0:
 			return ""
@@ -99,7 +99,7 @@ def index():
 @app.route('/<int:p>')
 def psalm(p):
 	psalm = bible.psalms[p-1]
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 
 	template = open('descriptions.md', 'r', encoding='utf-8').read()
 	templates = {}
@@ -185,7 +185,7 @@ def psalm_align(p):
 def psalm_audio_edit(p, v):
 	psalm = bible.psalms[p - 1]
 	verse = psalm.verses[v - 1]
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 
 	if audio.has_original_audio(verse):
 		start, end = audio.get_timing(verse)
@@ -225,7 +225,7 @@ def save_psalm_audio_timing():
 	end = float(request.form['end'])
 
 	verse = bible.verse(book - 1, chapter, verse_num)
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 	audio.set_timing(verse, start, end)
 
 	if 'next' in request.form:
@@ -320,7 +320,7 @@ def export_psalm_cinematic_video(p):
 @app.route('/clone/<int:p>')
 def clone_psalm_voice(p):
 	psalm = bible.psalms[p - 1]
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 	for verse in psalm.verses:
 		if not audio.has_cloned_audio(verse) and audio.has_original_audio(verse):
 			audio.clone(verse)  # note: AudioBible now has a clone(verse) method
@@ -328,20 +328,20 @@ def clone_psalm_voice(p):
 
 @app.route('/align/<int:p>')
 def align_psalm(p):
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 	psalm = bible.psalms[p - 1]
 	for verse in psalm.verses:
 		if audio.has_cloned_audio(verse):
-			audio.align(verse.chapter.book.number, verse.chapter.number, verse.number)
+			audio.align(verse)
 	return redirect(f'/{p}')
 
 @app.route('/align/<int:p>/<int:v>')
 def align_psalm_verse(p, v):
-	audio = AudioBible()
+	audio = AudioBible.get_instance()
 	psalm = bible.psalms[p - 1]
 	verse = psalm.verses[v - 1]
 	if audio.has_cloned_audio(verse):
-		audio.align(verse.chapter.book.number, verse.chapter.number, verse.number)
+		audio.align(verse)
 	return redirect(f'/{p}#{v}')
 
 @app.route('/hebrew/normalize', methods=['POST'])

@@ -5,6 +5,7 @@ from pathlib import Path
 from mutagen.id3 import ID3, TIT2, COMM, TPE1, TPUB, TYER, TLAN, TRCK, TALB, TCOP
 
 import Media
+import Services
 
 ROOT = Path(__file__).parent
 AUDIO_FOLDER = ROOT / "audio"
@@ -14,6 +15,14 @@ CLONED_CSV = AUDIO_FOLDER / 'cloned.csv'
 ENGLISH_CSV = AUDIO_FOLDER / 'english.csv'
 
 class AudioBible:
+	_instance = None
+
+	@classmethod
+	def get_instance(cls):
+		if cls._instance is None:
+			cls._instance = AudioBible()
+		return cls._instance
+
 	def __init__(self):
 		self.title_durations = {}
 		self.cloned_durations = {}
@@ -55,7 +64,7 @@ class AudioBible:
 		with open(ORIGINAL_CSV, 'w', newline='', encoding='utf-8') as file:
 			writer = csv.writer(file)
 			writer.writerow(['book', 'chapter', 'verse', 'start', 'end'])
-			for (book_num, chapter_num, verse_num), (start_time, end_time) in sorted(_timings.items()):
+			for (book_num, chapter_num, verse_num), (start_time, end_time) in sorted(self.timings.items()):
 				writer.writerow([book_num, chapter_num, verse_num, start_time, end_time])
 
 
@@ -93,17 +102,16 @@ class AudioBible:
 
 
 
-	def clone(book, chapter, verse):
-		if not has_original_audio(book, chapter, verse):
+	def clone(self, verse):
+		if not self.has_original_audio(verse):
 			return False
-		basename = f"{book:03d}.{chapter:03d}.{verse:03d}"
-		original_mp3_path = self.bible_audio.original_directory / f"{basename}.mp3"
-		cloned_mp3_path = self.bible_audio.cloned_directory / f"{basename}.mp3"
+		original_mp3_path = self.original_mp3(verse)
+		cloned_mp3_path = self.cloned_mp3(verse)
 		voice_id = "dPah2VEoifKnZT37774q"
 		Services.speech_to_speech(original_mp3_path, voice_id, cloned_mp3_path)
 		duration = Media.get_duration(cloned_mp3_path)
-		save_cloned_duration(book, chapter, verse, duration)
-		align(book, chapter, verse)
+		self.save_cloned_duration(verse, duration)
+		self.align(verse)
 		return True
 
 	def generate_english_audio(self, book, chapter, verse, english_text):
@@ -120,18 +128,17 @@ class AudioBible:
 
 
 
-	def align(self, book_num, chapter_num, verse_num):
-		basename = f"{book_num:03d}.{chapter_num:03d}.{verse_num:03d}"
-		cloned_mp3_path = self.bible_audio.cloned_directory / f"{basename}.mp3"
-	
+	def align(self, verse):
+		book_num = verse.chapter.book.number
+		chapter_num = verse.chapter.number
+		verse_num = verse.number
+		cloned_mp3_path = self.cloned_mp3(verse)
+
 		if not cloned_mp3_path.exists():
 			return False
-	
-	
-		verse = self.bible_audio.bible.verse(book_num - 1, chapter_num, verse_num)
-		#print(verse)
+
 		bare_text = verse.bare_text
-		
+
 		word_timings = Services.word_alignment(cloned_mp3_path, bare_text)
 	#	print (word_timings)
 	#	exit()
@@ -198,7 +205,7 @@ class AudioBible:
 		self._save_duration(ENGLISH_CSV, verse, duration, self.english_durations)
 
 	def _save_duration(self, csv_path, verse, duration, durations_dict):
-		key = (verse.chapter.book.number, verse.chapter.number, verse_number)
+		key = (verse.chapter.book.number, verse.chapter.number, verse.number)
 		durations_dict[key] = duration
 		rows = []
 		if csv_path.exists():
@@ -373,10 +380,14 @@ _load_timestamps()
 			.run()
 		)
 
+	def original_mp3(self, verse):
+		basename = f"{verse.chapter.book.number:03d}.{verse.chapter.number:03d}.{verse.number:03d}.mp3"
+		return AUDIO_FOLDER / "original" / basename
+
 	def cloned_mp3(self, verse):
 		basename = f"{verse.chapter.book.number:03d}.{verse.chapter.number:03d}.{verse.number:03d}.mp3"
 		return AUDIO_FOLDER / "cloned" / basename
-	
+
 	def english_mp3(self, verse):
 		basename = f"{verse.chapter.book.number:03d}.{verse.chapter.number:03d}.{verse.number:03d}.mp3"
 		return AUDIO_FOLDER / "english" / basename

@@ -44,7 +44,7 @@ class EpisodeVideo(Video):
 		super().__init__(size)
 		self.episode = episode
 		self.raw = raw
-		self.audiobible = AudioBible()
+		self.audiobible = AudioBible.get_instance()
 
 	@property
 	def filename(self):
@@ -109,8 +109,9 @@ class EpisodeVideo(Video):
 
 	@property
 	def audio_stream(self):
-		audiofile = f"output/{self.episode.parashah.number:02d}.{self.episode.number:02d}.mp3"
-		return ffmpeg.input(audiofile)
+		from Audio import EpisodeAudio
+		episode_audio = EpisodeAudio(self.episode)
+		return episode_audio.stream
 
 	@property
 	def duration(self):
@@ -162,7 +163,7 @@ class PsalmVideo(Video):
 		self.psalm = psalm
 		self.music = music
 		self.graphics = graphics
-		self.audiobible = AudioBible()
+		self.audiobible = AudioBible.get_instance()
 
 
 	@property
@@ -335,7 +336,7 @@ class ParashahVideo(Video):
 	def __init__(self, parashah, size):
 		super().__init__(size)
 		self.parashah = parashah
-		self.audiobible = AudioBible()
+		self.audiobible = AudioBible.get_instance()
 
 	@property
 	def filename(self):
