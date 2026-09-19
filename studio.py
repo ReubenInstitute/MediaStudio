@@ -458,7 +458,7 @@ def parashot():
 			#'original_duration': original_mmss
 		})
 	return render_template('parashot.html',
-						   parashot=bible.parashot)
+						   parashot=parashot_list)
 
 
 @app.route('/bible/parashot/<int:number>/<int:episode>')

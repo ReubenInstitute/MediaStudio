@@ -14,7 +14,7 @@
 	{% set parashah = entry.parashah %}
 	<tr>
 		<td>{{ parashah.number }}</td>
-		<td><a href="/{{ parashah.number }}">{{ parashah.hebrew_name }}</a></td>
+		<td><a href="/bible/parashot/{{ parashah.number }}">{{ parashah.hebrew_name }}</a></td>
 		<td>{{ entry.original_duration }}</td>
 		<td>{{ entry.cloned_duration }}</td>
 		<td style="background-color: rgb({{ parashah.color[0] }}, {{ parashah.color[1] }}, {{ parashah.color[2] }}); width: 50px;"></td>
