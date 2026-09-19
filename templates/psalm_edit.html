@@ -1,11 +1,7 @@
 {% extends "base.html" %}
 
-{% block navigation %}
-<a href="/">ראשי</a> • <a href="/{{ psalm.number }}">מזמור {{ psalm.hebrew_number }}</a> • עריכה
-{% endblock %}
-
 {% block content %}
-<h1>עריכת מזמור {{ psalm.hebrew_fancy_number }}</h1>
+<h1>Editing Psalm {{ psalm.hebrew_fancy_number }}</h1>
 
 <div style="margin: 10px 0;">
 	<button type="button" class="copy-btn" data-char="ׇ">אׇ</button>
@@ -19,9 +15,9 @@
 </div>
 
 <form method="post">
-<button type="button" id="normalize-btn">נרמל</button>
-<button type="button" id="dagesh-btn">הוסף דגש חזק</button><br />
-	<textarea id="text" name="text">{{ psalm.markdown }}</textarea>
+<button type="button" id="normalize-btn">Normalize</button>
+<button type="button" id="dagesh-btn">Add Dagesh Hazak</button><br />
+	<textarea id="text" name="text" class="rtl">{{ psalm.markdown }}</textarea>
 	<br>
 	<button type="submit">Save</button>
 </form>

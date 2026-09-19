@@ -1,25 +1,22 @@
 {% extends "base.html" %}
 
-{% block navigation %}
-<a href="/">ראשי</a> • <a href="/bible/parashot">פרשות</a>
-{% endblock %}
-
 {% block content %}
-<h1>פרשות</h1>
+<h1>Parashot</h1>
 <table>
 	<tr>
-		<th>מספר</th>
-		<th>שם</th>
-		<th>מקורי סה"כ</th>
-		<th>משוכפל סה"כ</th>
-		<th>צבע</th>
+		<th>Number</th>
+		<th>Name</th>
+		<th>Original Total</th>
+		<th>Cloned Total</th>
+		<th>Color</th>
 	</tr>
-	{% for parashah in parashot %}
+	{% for entry in parashot %}
+	{% set parashah = entry.parashah %}
 	<tr>
 		<td>{{ parashah.number }}</td>
-		<td><a href="/bible/parashot/{{ parashah.number }}">{{ parashah.hebrew_name }}</a></td>
-		<td>{#{ data.original_duration }#}</td>
-		<td>{#{ data.cloned_duration }#}</td>
+		<td><a href="/{{ parashah.number }}">{{ parashah.hebrew_name }}</a></td>
+		<td>{{ entry.original_duration }}</td>
+		<td>{{ entry.cloned_duration }}</td>
 		<td style="background-color: rgb({{ parashah.color[0] }}, {{ parashah.color[1] }}, {{ parashah.color[2] }}); width: 50px;"></td>
 	</tr>
 	{% endfor %}

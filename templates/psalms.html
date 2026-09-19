@@ -1,9 +1,5 @@
 {% extends "base.html" %}
 
-{% block navigation %}
-<a href="/">ראשי</a>
-{% endblock %}
-
 {% block content %}
 <h1>Psalms</h1>
 
@@ -15,8 +11,7 @@
 			<tr>
 				<th>Psalm</th>
 				<th></th>
-				<th>Audio</th>
-				<th>Total Duration</th>
+				<th>Duration</th>
 				<th></th>
 			</tr>
 		</thead>
@@ -26,7 +21,6 @@
 			<tr>
 				<td><a href="/{{ psalm.number }}">{{ psalm.hebrew_number }}</a></td>
 				<td><a href="/{{ psalm.number }}">{{ psalm.number }}</a></td>
-				<td>{{ entry.cloned_duration }}</td>
 				<td>{{ entry.total_duration }}</td>
 				<td style="background-color: {% if entry.show_color %}rgb({{ psalm.color[0] }}, {{ psalm.color[1] }}, {{ psalm.color[2] }}){% else %}transparent{% endif %}; width: 50px;"></td>
 			</tr>
@@ -36,7 +30,6 @@
 			<tr>
 				<td>Book Total:</td>
 				<td></td>
-				<td>{{ book.cloned_total }}</td>
 				<td>{{ book.duration_total }}</td>
 				<td></td>
 			</tr>

@@ -1,22 +1,18 @@
 {% extends "base.html" %}
 
-{% block navigation %}
-<a href="/">ראשי</a> • <a href="/{{ psalm.number }}">מזמור {{ psalm.hebrew_number }}</a> • יישור
-{% endblock %}
-
 {% block content %}
-<h1>יישור מזמור {{ psalm.hebrew_fancy_number }}</h1>
+<h1>Align Psalm {{ psalm.hebrew_fancy_number }}</h1>
 
 {% for verse in verse_data %}
-<h2>פסוק {{ verse.number }}</h2>
+<h2>Verse {{ verse.number }}</h2>
 <table border="1" cellpadding="5" style="border-collapse: collapse; margin-bottom: 20px;">
 	<thead>
 		<tr>
 			<th>#</th>
-			<th>מילה</th>
-			<th>התחלה (שניות)</th>
-			<th>סוף (שניות)</th>
-			<th>משך (שניות)</th>
+			<th>Word</th>
+			<th>Start (sec)</th>
+			<th>End (sec)</th>
+			<th>Duration (sec)</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -33,5 +29,5 @@
 </table>
 {% endfor %}
 
-<a class="button" href="/{{ psalm.number }}">חזור למזמור</a>
+<a class="button" href="/{{ psalm.number }}">Back to Psalm</a>
 {% endblock %}

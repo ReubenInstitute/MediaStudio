@@ -1,9 +1,5 @@
 {% extends "base.html" %}
 
-{% block navigation %}
-<a href="/">ראשי</a> • <a href="/{{ psalm.number }}">מזמור {{ psalm.hebrew_number }}</a> • פסוק {{ v }}
-{% endblock %}
-
 {% block content %}
 <h1>Psalm {{ psalm.number }}:{{ v }} Audio Edit</h1>
 <p>{{ verse.text }}</p>

@@ -1,14 +1,10 @@
 {% extends "base.html" %}
 
-{% block navigation %}
-<a href="/">ראשי</a> • מזמור {{ psalm.hebrew_fancy_number }}
-{% endblock %}
-
 {% block content %}
-<h1>מזמור {{ psalm.hebrew_fancy_number }}</h1>
-<a href="/{{ psalm.number }}/edit" class="button">✏️ ערוך</a>
-<p>{{ psalm.hebrew_description }}</p>
-<section class="psalm scriptures">
+<h1>Psalm {{ psalm.hebrew_fancy_number }}</h1>
+<a href="/{{ psalm.number }}/edit" class="button">✏️ Edit</a>
+<p class="rtl">{{ psalm.hebrew_description }}</p>
+<section class="psalm scriptures rtl">
 	{% for paragraph in psalm.layout %}
 	<section class="paragraph">
 		{% for verse_lines in paragraph %}
@@ -28,16 +24,16 @@
 
 <table>
 	<tr>
-		<th>פסוק</th>
-		<th>מקורי</th>
-		<th>יצירת משוכפל</th>
-		<th>משוכפל</th>
-		<th>עריכת שמע</th>
-		<th>אורך</th>
+		<th>Verse</th>
+		<th>Original</th>
+		<th>Generate Clone</th>
+		<th>Cloned</th>
+		<th>Edit Audio</th>
+		<th>Length</th>
 	</tr>
 	{% for verse in psalm.verses %}
 	<tr>
-		<td><a name="{{ verse.number }}">פסוק {{ verse.number }}</a></td>
+		<td><a name="{{ verse.number }}">Verse {{ verse.number }}</a></td>
 		<td>
 			{% if audio.has_original_audio(verse) %}
 			<div class="visual-player" data-audio="/audio/original/027.{{ '%03d' % psalm.number }}.{{ '%03d' % verse.number }}.mp3"></div>
@@ -76,8 +72,8 @@
 <a class="button" href="/export/video/score/horizontal/{{ psalm.number }}">Export Score H Video</a>
 <a class="button" href="/export/video/cinematic/{{ psalm.number }}">Export Cinematic Video</a>
 <hr/>
-<a class="button" href="/clone/{{ psalm.number }}">👥 שכפול כל הפסוקים החסרים</a>
-<a class="button" href="/{{ psalm.number }}/align">📐 עריכת גריד (BPM)</a>
+<a class="button" href="/clone/{{ psalm.number }}">👥 Clone All Missing Verses</a>
+<a class="button" href="/{{ psalm.number }}/align">📐 Edit Grid (BPM)</a>
 <a class="button" href="/align/{{ psalm.number }}">📐</a>
 <hr/>
 {% for name in descriptions %}

@@ -1,13 +1,9 @@
 {% extends "base.html" %}
 
-{% block navigation %}
-<a href="/">ראשי</a> • <a href="/bible/parashot">פרשות</a> • <a href="/bible/parashot/{{ parashah.number }}">{{ parashah.hebrew_name }}</a>
-{% endblock %}
-
 {% block content %}
 <h1>{{ parashah.number }} {{ parashah.hebrew_name }}</h1>
 <form method="post">
-	<textarea id="text" name="text">{{ parashah.markdown }}</textarea>
+	<textarea id="text" name="text" class="rtl">{{ parashah.markdown }}</textarea>
 	<button>Save</button>
 </form>
 {% endblock %}
