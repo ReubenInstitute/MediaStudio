@@ -15,7 +15,7 @@ from Audio import PsalmAudio
 from Parashot import Parashot
 from Psalms import Psalms
 
-app = Flask(__name__, template_folder="templates-studio")
+app = Flask(__name__, template_folder="templates")
 bible = Bible()
 bible.parashot = Parashot(bible)
 bible.psalms = Psalms(bible)
