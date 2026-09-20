@@ -13,3 +13,6 @@
 [submodule "assets"]
 	path = assets
 	url = https://github.com/ReubenInstitute/Studio-assets
+[submodule "output"]
+	path = output
+	url = https://github.com/ReubenInstitute/Media
