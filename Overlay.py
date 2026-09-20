@@ -400,7 +400,7 @@ class PoemVersePlate(Plate):
 			text = ' '.join(word.text for word in line)
 			box = Image.bbox((0, 0), text, "TaameyFrankCLM-Medium.ttf", font.size)
 			line_height = box[3] - box[1]
-			self.draw_centered(0, y, self.width, line, "ReuvenSerif.ttf", font.size, "#ffffff", rtl=True,
+			self.draw_centered(0, y, self.width, line, "FrankCurledLamed/FrankCurledLamedRI.ttf", font.size, "#ffffff", rtl=True,
 					highlight=self.highlight, first=first)
 			first += len(line)
 			y += line_height
@@ -595,7 +595,7 @@ class PsalmSlide(Slide):
 			text = ' '.join(word.text for word in line)
 			box = Image.bbox((0, 0), text, "TaameyFrankCLM-Medium.ttf", font.size)
 			line_height = box[3] - box[1]
-			self.draw_centered_slide(0, y, self.width, line, "ReuvenSerif.ttf", font.size, "#ffff00", rtl=True, verse=verse_num)
+			self.draw_centered_slide(0, y, self.width, line, "FrankCurledLamed/FrankCurledLamedRI.ttf", font.size, "#ffff00", rtl=True, verse=verse_num)
 			y += line_height
 
 		if self.layout and self.layout[0] and self.layout[0][0] and self.layout[0][0].verse:

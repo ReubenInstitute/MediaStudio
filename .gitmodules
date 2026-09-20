@@ -16,3 +16,6 @@
 [submodule "output"]
 	path = output
 	url = https://github.com/ReubenInstitute/Media
+[submodule "fonts/FrankCurledLamed"]
+	path = fonts/FrankCurledLamed
+	url = https://github.com/ReubenInstitute/FrankCurledLamed.git
