@@ -266,6 +266,10 @@ class NarrationParagraphVersePlate(Plate):
 		return ''
 
 	@property
+	def highlight(self):
+		return self.verse if self.verse != 0 else None
+
+	@property
 	def image(self):
 		self._image = PILImage.new('RGBA', (self.width, self.height), (0, 0, 0, 0))
 		header_height = int(self.height * 0.20)
@@ -274,36 +278,37 @@ class NarrationParagraphVersePlate(Plate):
 		margin = int(self.width * 0.15)
 		available_width = self.width - 2 * margin
 		font_size = 50
+		layout = [[Word(Hebrew.strip_cantillation(Hebrew.strip_hebrew_punctuation(Hebrew.strip_yhwh(word.text), strip_maqaf=False)), word.verse) for word in line] for line in self.layout]
 
 		temp_canvas = ImageDraw.Draw(PILImage.new('RGB', (1, 1)))
 		total_height = 0
 		all_sublines = []
-		for visual_line in self.layout:
-			sublines = Plate.wrap(visual_line, "TaameyFrankCLM-Medium.ttf", font_size, available_width)
+		for visual_line in layout:
+			sublines = Plate.wrap(visual_line, "SBLHebrew.ttf", font_size, available_width)
 			for line_words in sublines:
 				if line_words:
-					text = ' '.join(Hebrew.presentation(word.text) for word in line_words)
-					box = Image.bbox((0, 0), text, "TaameyFrankCLM-Medium.ttf", font_size, direction="rtl")
+					text = ' '.join(word.text for word in line_words)
+					box = Image.bbox((0, 0), text, "SBLHebrew.ttf", font_size, direction="rtl")
 					line_height = box[3] - box[1]
 					total_height += line_height
 					all_sublines.append((line_words, line_height))
 
 		current_y = header_height + (safe_height - total_height) // 2
 		line_index = 0
-		for visual_line in self.layout:
-			sublines = Plate.wrap(visual_line, "TaameyFrankCLM-Medium.ttf", font_size, available_width)
+		for visual_line in layout:
+			sublines = Plate.wrap(visual_line, "SBLHebrew.ttf", font_size, available_width)
 			for j, line_words in enumerate(sublines):
 				if line_words and line_index < len(all_sublines):
 					line_height = all_sublines[line_index][1]
 					draw_y = current_y
 					if j == len(sublines) - 1:
 						self.draw_centered(margin, draw_y, available_width, line_words,
-										   "TaameyFrankCLM-Medium.ttf", font_size, "#ffffff",
-										   rtl=True, verse=self.verse if self.verse != 0 else None)
+										   "SBLHebrew.ttf", font_size, "#ffffff",
+										   rtl=True, verse=self.highlight)
 					else:
 						self.draw_justified(margin, draw_y, available_width, line_words,
-											"TaameyFrankCLM-Medium.ttf", font_size, "#ffffff",
-											rtl=True, verse=self.verse if self.verse != 0 else None)
+											"SBLHebrew.ttf", font_size, "#ffffff",
+											rtl=True, verse=self.highlight)
 					current_y += line_height * 1.0
 					line_index += 1
 
@@ -327,6 +332,10 @@ class EpisodeParagraphVersePlate(NarrationParagraphVersePlate):
 	def filename(self):
 		return os.path.join(BUILD_FOLDER, "images", self.FOLDER,
 							f"{self.episode.parashah.number}.{self.episode.number}.{self.paragraph}.{self.verse}.png")
+
+	@property
+	def highlight(self):
+		return self.episode.verses[self.verse - 1].number if self.verse != 0 else None
 
 	@property
 	def footer(self):
@@ -497,12 +506,8 @@ class EpisodeParagraphSlide(Asset):
 	def export(self):
 		print (f"SIZE {self.size}")
 		layout = self.episode.paragraphs[self.paragraph-1].layout
-		verses = set()
-		for line in layout:
-			for word in line:
-				if word.verse:
-					verses.add(word.verse.number)
-		verses = sorted(verses)
+		paragraph = self.episode.paragraphs[self.paragraph-1]
+		verses = [self.episode.verses.index(verse) + 1 for verse in paragraph.verses]
 		base_plate = EpisodeParagraphVersePlate(self.episode, self.paragraph, verse=0, size=self.size)
 		base_plate.export()
 		for v in verses:

@@ -3,7 +3,7 @@
 {% block content %}
 <h1>{{ episode.hebrew_title }}</h1>
 <p>Total: {{ total_original_mmss }}🔊 {{ total_cloned_mmss }}👥</p>
-<section class="episode scriptures rtl">
+<section class="episode scriptures rtl sbl">
 	{% for paragraph in episode.layout %}
 	<section class="paragraph">
 		{% for line in paragraph %}

@@ -2,7 +2,7 @@ from flask import Flask, send_file, request, Response, render_template, redirect
 import ffmpeg
 from Bible import Bible
 import Hebrew
-from Video import EpisodeVideo
+from Video import EpisodeVideo, ParashahVideo
 import Media
 import os
 from Parashot import Parashot
@@ -151,11 +151,16 @@ def serve_audio_segment(book, frm, to):
 	audio_data, _ = process.communicate()
 	return Response(audio_data, mimetype='audio/wav')
 
+@app.route('/generate/video/<int:parashah>/full')
+def generate_parashah_video(parashah):
+	ParashahVideo(bible.parashot[parashah-1], size=Media.SDV).export()
+	return redirect(f'/{parashah}')
+
 @app.route('/generate/video/<int:parashah>/<int:episode>')
 def generate_episode_video(parashah, episode):
 	parashah_obj = bible.parashot[parashah-1]
 	episode_obj = parashah_obj.episodes[episode-1]
-	video = EpisodeVideo(episode_obj, size=Media.TESTV)
+	video = EpisodeVideo(episode_obj, size=Media.SDV)
 	video.export()
 	return redirect(f'/{parashah}/{episode}')
 

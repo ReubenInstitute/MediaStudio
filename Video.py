@@ -15,6 +15,7 @@ BUILD_FOLDER = "build"
 
 class Video(Asset.Asset):
 	FADE_DURATION = 0.5
+	FPS = 25
 	BACKGROUND_OPACITY = 0.7
 
 	def __init__(self, size):
@@ -49,7 +50,7 @@ class EpisodeVideo(Video):
 	@property
 	def filename(self):
 		suffix = '-raw' if self.raw else ''
-		return f'torah-{self.episode.parashah.number:02d}.{self.episode.number:02d}{suffix}.mp4'
+		return str(Asset.TORAH_FOLDER / f'torah-{self.episode.parashah.number:02d}.{self.episode.number:02d}{suffix}.mp4')
 
 	def generate_assets(self):
 		overlay = EpisodeOverlay(self.episode, size=self.size)
@@ -60,96 +61,62 @@ class EpisodeVideo(Video):
 			slide.export()
 
 	@property
-	def video_stream(self):
-		video_nodes = []
-		x = 0.001
-		for paragraph in self.episode.paragraphs:
-			verses_in_paragraph = paragraph.verses
-			for i, verse in enumerate(verses_in_paragraph):
-				verse_num = verse.number
-				audio_duration = self.audiobible.cloned_duration(verse)
-				audio_duration += x
-				x += 0.001
-				is_first_verse = (i == 0)
-				is_last_verse = (i == len(verses_in_paragraph) - 1)
-				segment_duration = self.FADE_DURATION + audio_duration + self.FADE_DURATION
-
-				base_image_path = os.path.join(BUILD_FOLDER, "images", "parashot",
-											   f"{self.episode.parashah.number}.{self.episode.number}.{paragraph.number}.0.png")
-				highlight_image_path = os.path.join(BUILD_FOLDER, "images", "parashot",
-													f"{self.episode.parashah.number}.{self.episode.number}.{paragraph.number}.{verse_num}.png")
-
-				base_video = ffmpeg.input(base_image_path, loop=1, t=segment_duration)
-				base_video = base_video.filter('scale', self.width, self.height)
-				base_video = base_video.filter('format', 'rgba')
-				if is_first_verse:
-					base_video = base_video.filter('fade', type='in', duration=self.FADE_DURATION)
-				if is_last_verse:
-					base_video = base_video.filter('fade', type='out', start_time=segment_duration - self.FADE_DURATION, duration=self.FADE_DURATION)
-
-				highlight_video = ffmpeg.input(highlight_image_path, loop=1, t=segment_duration)
-				highlight_video = highlight_video.filter('scale', self.width, self.height)
-				highlight_video = highlight_video.filter('format', 'rgba')
-				highlight_video = highlight_video.filter('fade', type='in', alpha=1, duration=self.FADE_DURATION)
-				highlight_video = highlight_video.filter('fade', type='out', alpha=1,
-														 start_time=segment_duration - self.FADE_DURATION,
-														 duration=self.FADE_DURATION)
-
-				verse_video = ffmpeg.overlay(base_video, highlight_video)
-				video_nodes.append(verse_video)
-
-		if not video_nodes:
-			return ffmpeg.input('anullsrc', f='lavfi', t=self.duration).video.filter('format', 'rgba').filter('geq', r='0', g='0', b='0', a='0')
-		video_concat = ffmpeg.concat(*video_nodes, v=1, a=0).node[0]
-
-		video = self.background
-		video = ffmpeg.overlay(video, video_concat, format='auto', shortest=1)
-		video = ffmpeg.overlay(video, self.overlay, format='auto', shortest=1)
-		return video
-
-	@property
 	def audio_stream(self):
 		from Audio import EpisodeAudio
-		episode_audio = EpisodeAudio(self.episode)
-		return episode_audio.stream
+		return EpisodeAudio(self.episode).stream
 
 	@property
 	def duration(self):
 		total = 0.0
 		for paragraph in self.episode.paragraphs:
 			for verse in paragraph.verses:
-				audio_duration = self.audiobible.cloned_duration(verse)
-				total += self.FADE_DURATION + audio_duration + self.FADE_DURATION
+				total += self.FADE_DURATION + self.audiobible.cloned_duration(verse) + self.FADE_DURATION
 		return total
 
-	@property
-	def background(self):
-		duration = self.duration
-		if self.raw:
-			background = ffmpeg.input(os.path.join(ASSETS_FOLDER, 'back.mp4'), stream_loop=-1, t=duration)
-			background = background.filter('scale', self.width, self.height, force_original_aspect_ratio='increase')
-			background = background.filter('crop', w=self.width, h=self.height)
-			color_hex = f"#{self.episode.color[0]:02x}{self.episode.color[1]:02x}{self.episode.color[2]:02x}"
-			color_overlay = ffmpeg.input(f'color=c={color_hex}:s={self.width}x{self.height}', f='lavfi', t=duration)
-			background = ffmpeg.filter([background, color_overlay], 'blend', all_mode='overlay', all_opacity=self.BACKGROUND_OPACITY)
-		else:
-			background = ffmpeg.input(f'color=c=black:s={self.width}x{self.height}', f='lavfi', t=duration)
-		return background
+	def plate(self, name, frames, fade_in=None, fade_out=None):
+		image = ffmpeg.input(os.path.join(BUILD_FOLDER, "images", "parashot", name), loop=1, framerate=self.FPS, t=frames / self.FPS)
+		image = image.filter('scale', self.width, self.height).filter('format', 'rgba')
+		if fade_in:
+			image = image.filter('fade', type='in', alpha=fade_in[0], duration=self.FADE_DURATION)
+		if fade_out:
+			image = image.filter('fade', type='out', alpha=fade_out[0], start_time=frames / self.FPS - self.FADE_DURATION, duration=self.FADE_DURATION)
+		return image
 
-	@property
-	def overlay(self):
-		duration = self.duration
-		title_image_path = f"build/images/parashot/{self.episode.parashah.number:02d}_{self.episode.number:02d}_title.png"
-		overlay = ffmpeg.input(title_image_path, loop=1, t=duration)
-		overlay = overlay.filter('scale', self.width, self.height)
-		overlay = overlay.filter('format', 'rgba')
-		overlay = overlay.filter('fade', type='in', start_time=0, duration=self.FADE_DURATION)
-		overlay = overlay.filter('fade', type='out', start_time=duration - self.FADE_DURATION, duration=self.FADE_DURATION)
-		return overlay
+	def clip(self, filename, paragraph, verse_index, frames, first, last, first_in_paragraph, last_in_paragraph):
+		"""One verse as its own small video, so ffmpeg never holds the whole episode in memory."""
+		episode = self.episode
+		prefix = f"{episode.parashah.number}.{episode.number}.{paragraph.number}"
+		background = ffmpeg.input(f'color=c=black:s={self.width}x{self.height}:r={self.FPS}', f='lavfi', t=frames / self.FPS)
+		base = self.plate(f"{prefix}.0.png", frames, fade_in=(0,) if first_in_paragraph else None, fade_out=(0,) if last_in_paragraph else None)
+		highlight = self.plate(f"{prefix}.{verse_index}.png", frames, fade_in=(1,), fade_out=(1,))
+		title = self.plate(f"{episode.parashah.number:02d}_{episode.number:02d}_title.png", frames,
+						   fade_in=(0,) if first else None, fade_out=(0,) if last else None)
+		video = ffmpeg.overlay(background, ffmpeg.overlay(base, highlight), format='auto', shortest=1)
+		video = ffmpeg.overlay(video, title, format='auto', shortest=1)
+		ffmpeg.output(video, str(filename), vcodec='libx264', preset='veryfast', crf=23, pix_fmt='yuv420p', r=self.FPS,
+					  **{'frames:v': frames}).run(overwrite_output=True)
 
 	def export(self):
 		self.generate_assets()
-		super().export()
+		Path(self.filename).parent.mkdir(parents=True, exist_ok=True)
+		folder = Path(BUILD_FOLDER) / "clips" / f"torah-{self.episode.parashah.number:02d}.{self.episode.number:02d}"
+		folder.mkdir(parents=True, exist_ok=True)
+		verses = self.episode.verses
+		units = [(paragraph, verse, i, len(paragraph.verses)) for paragraph in self.episode.paragraphs for i, verse in enumerate(paragraph.verses)]
+		clips = []
+		elapsed = 0.0
+		frames_done = 0
+		for n, (paragraph, verse, i, count) in enumerate(units):
+			elapsed += self.FADE_DURATION + self.audiobible.cloned_duration(verse) + self.FADE_DURATION
+			frames = round(elapsed * self.FPS) - frames_done
+			frames_done += frames
+			clip = folder / f"{n:03d}.mp4"
+			self.clip(clip, paragraph, verses.index(verse) + 1, frames, n == 0, n == len(units) - 1, i == 0, i == count - 1)
+			clips.append(clip)
+		list_file = folder / "clips.txt"
+		list_file.write_text(''.join(f"file '{clip.resolve()}'\n" for clip in clips))
+		video = ffmpeg.input(str(list_file), f='concat', safe=0)
+		ffmpeg.output(video.video, self.audio_stream, self.filename, vcodec='copy', acodec='aac', audio_bitrate='192k').run(overwrite_output=True)
 
 
 
@@ -350,150 +317,20 @@ class ParashahVideo(Video):
 	def __init__(self, parashah, size):
 		super().__init__(size)
 		self.parashah = parashah
-		self.audiobible = AudioBible.get_instance()
 
 	@property
 	def filename(self):
-		return f'torah-{self.parashah.number:02d}-full-{"h" if self.landscape else "v"}.mp4'
+		return str(Asset.TORAH_FOLDER / f'torah-{self.parashah.number:02d}.mp4')
 
-	def save_overlay(self):
-		overlay = ParashahOverlay(self.parashah)
-		overlay.save(landscape=self.landscape)
-
-	def save_slides(self):
+	def export(self):
+		Path(self.filename).parent.mkdir(parents=True, exist_ok=True)
+		files = []
 		for episode in self.parashah.episodes:
-			for paragraph in episode.paragraphs:
-				for slide in paragraph.slides:
-					slide.save(landscape=self.landscape)
-
-	@property
-	def duration(self):
-		total = 0.0
-		for episode in self.parashah.episodes:
-			total += episode.video.duration
-		return total
-
-	@property
-	def background(self):
-		duration = self.duration
-#		if self.imageless:
-		background = ffmpeg.input(os.path.join(ASSETS_FOLDER, 'back.mp4'), stream_loop=-1, t=duration)
-		background = background.filter('scale', self.width, self.height, force_original_aspect_ratio='increase')
-		background = background.filter('crop', w=self.width, h=self.height)
-		color_hex = f"#{self.parashah.color[0]:02x}{self.parashah.color[1]:02x}{self.parashah.color[2]:02x}"
-		color_overlay = ffmpeg.input(f'color=c={color_hex}:s={self.width}x{self.height}', f='lavfi', t=duration)
-		background = ffmpeg.filter([background, color_overlay], 'blend', all_mode='overlay', all_opacity=self.BACKGROUND_OPACITY)
-#		else:
-#			background = ffmpeg.input(f'color=c=black:s={self.width}x{self.height}', f='lavfi', t=duration)
-		return background
-
-	@property
-	def overlay(self):
-		duration = self.duration
-		overlay_path = f"build/images/parashot/{self.parashah.number:02d}_parashah_title.png"
-		overlay = ffmpeg.input(overlay_path, loop=1, t=duration)
-		overlay = overlay.filter('scale', self.width, self.height)
-		overlay = overlay.filter('format', 'rgba')
-		overlay = overlay.filter('fade', type='in', start_time=0, duration=self.FADE_DURATION)
-		overlay = overlay.filter('fade', type='out', start_time=duration - self.FADE_DURATION, duration=self.FADE_DURATION)
-		return overlay
-
-
-
-	@property
-	def video_stream(self):
-		video_nodes = []
-		#bible_audio = self.parashah.parashot.bible.audio
-		
-		for episode in self.parashah.episodes:
-			for paragraph in episode.paragraphs:
-				for slide in paragraph.slides:
-					verses_on_slide = set()
-					for line in slide.layout:
-						for word in line:
-							if hasattr(word, 'verse') and word.verse and word.verse.number not in verses_on_slide:
-								verses_on_slide.add(word.verse.number)
-					
-					verses_on_slide = sorted(verses_on_slide)
-					for i, verse_num in enumerate(verses_on_slide):
-						verse_obj = None
-						for line in slide.layout:
-							for word in line:
-								if hasattr(word, 'verse') and word.verse and word.verse.number == verse_num:
-									verse_obj = word.verse
-									break
-							if verse_obj:
-								break
-						book_num = verse_obj.chapter.book.number
-						chapter_num = verse_obj.chapter.number
-						audio_duration = self.audiobible.cloned_duration(verse_obj)
-						
-						is_first_verse = (i == 0)
-						is_last_verse = (i == len(verses_on_slide) - 1)
-						segment_duration = self.FADE_DURATION + audio_duration + self.FADE_DURATION
-						
-						base_image_path = f"build/images/parashot/{episode.parashah.number:02d}.{episode.number:02d}.{paragraph.number:02d}.{slide.slide:1d}.0.png"
-						highlight_image_path = f"build/images/parashot/{episode.parashah.number:02d}.{episode.number:02d}.{paragraph.number:02d}.{slide.slide:1d}.{i+1}.png"
-						
-						base_video = ffmpeg.input(base_image_path, loop=1, t=segment_duration)
-						base_video = base_video.filter('scale', self.width, self.height)
-						base_video = base_video.filter('format', 'rgba')
-						if is_first_verse:
-							base_video = base_video.filter('fade', type='in', duration=self.FADE_DURATION)
-						if is_last_verse:
-							base_video = base_video.filter('fade', type='out', start_time=segment_duration - self.FADE_DURATION, duration=self.FADE_DURATION)
-						
-						highlight_video = ffmpeg.input(highlight_image_path, loop=1, t=segment_duration)
-						highlight_video = highlight_video.filter('scale', self.width, self.height)
-						highlight_video = highlight_video.filter('format', 'rgba')
-						highlight_video = highlight_video.filter('fade', type='in', alpha=1, duration=self.FADE_DURATION)
-						highlight_video = highlight_video.filter('fade', type='out', alpha=1, start_time=segment_duration - self.FADE_DURATION, duration=self.FADE_DURATION)
-						
-						verse_video = ffmpeg.overlay(base_video, highlight_video)
-						video_nodes.append(verse_video)
-						
-		return ffmpeg.concat(*video_nodes, v=1, a=0).node[0]
-
-	@property
-	def audio_stream(self):
-		return ffmpeg.input('output/torah-01.01.mp3')
-
-		audio_nodes = []
-		bible_audio = self.parashah.parashot.bible.audio
-		
-		for episode in self.parashah.episodes:
-			for paragraph in episode.paragraphs:
-				for slide in paragraph.slides:
-					verses_on_slide = set()
-					for line in slide.layout:
-						for word in line:
-							if hasattr(word, 'verse') and word.verse and word.verse.number not in verses_on_slide:
-								verses_on_slide.add(word.verse.number)
-					
-					verses_on_slide = sorted(verses_on_slide)
-					for i, verse_num in enumerate(verses_on_slide):
-						verse_obj = None
-						for line in slide.layout:
-							for word in line:
-								if hasattr(word, 'verse') and word.verse and word.verse.number == verse_num:
-									verse_obj = word.verse
-									break
-						
-						book_num = verse_obj.chapter.book.number
-						chapter_num = verse_obj.chapter.number
-						
-						
-						audio_file = bible_audio.cloned_mp3(book_num, chapter_num, verse_num)
-						audio_stream = ffmpeg.input(audio_file)#.audio.filter('atrim', duration=audio_duration)
-						audio_stream = audio_stream.filter('loudnorm', I=-16, TP=-1.5, LRA=11)
-						audio_stream = audio_stream.filter('asetpts', 'PTS-STARTPTS')
-						
-						silence_before = ffmpeg.input('anullsrc=r=44100:cl=stereo', t=self.FADE_DURATION, f='lavfi')
-						silence_after = ffmpeg.input('anullsrc=r=44100:cl=stereo', t=self.FADE_DURATION, f='lavfi')
-						
-						full_audio = ffmpeg.concat(silence_before.audio, audio_stream, silence_after.audio, v=0, a=1)
-						audio_nodes.append(full_audio)
-						
-		audio_concat = ffmpeg.concat(*audio_nodes, v=0, a=1)#.node[0]
-		audio_concat = audio_concat.filter('dynaudnorm', f=500, g=31, p=0.75)
-		return audio_concat
+			video = EpisodeVideo(episode, size=self.size)
+			if not Path(video.filename).exists():
+				video.export()
+			files.append(video.filename)
+		list_file = Path(BUILD_FOLDER) / f'torah-{self.parashah.number:02d}.txt'
+		list_file.parent.mkdir(parents=True, exist_ok=True)
+		list_file.write_text(''.join(f"file '{Path(f).resolve()}'\n" for f in files))
+		ffmpeg.input(str(list_file), f='concat', safe=0).output(self.filename, c='copy').run(overwrite_output=True)

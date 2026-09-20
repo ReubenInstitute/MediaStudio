@@ -42,6 +42,11 @@
 }
 
 @font-face {
+	font-family: sblhebrew;
+	src: url('/fonts/SBLHebrew.ttf') format('truetype');
+}
+
+@font-face {
 	font-family: text;
 	src: url('/fonts/Assistant-Regular.ttf') format('truetype');
 	font-weight: normal;
@@ -233,6 +238,10 @@ textarea {
 .rtl {
 	direction: rtl;
 	text-align: right;
+}
+
+.sbl {
+	font-family: sblhebrew;
 }
 
 button,

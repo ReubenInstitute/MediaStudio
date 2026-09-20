@@ -290,58 +290,10 @@ class ODSPsalmAudio:
 class ParashahAudio():
 	def __init__(self, parashah):
 		self.parashah = parashah
-		self.audiobible = AudioBible.get_instance()
 
 	@property
 	def basename(self):
 		return f'parashah-{self.parashah.number:02d}'
-
-	@property
-	def music(self):
-		return None
-
-	@property
-	def segments(self):
-		segments_list = []
-		#bible_audio = self.parashah.parashot.bible.audio
-		for verse in self.parashah.verses:
-			book_num = verse.chapter.book.number
-			chapter_num = verse.chapter.number
-			verse_num = verse.number
-			#if not self.audiobible.has_cloned_audio(verse):
-			#	continue
-			audio_duration = self.audiobible.cloned_duration(verse)
-			#if audio_duration == 0.0:
-			#	continue
-			#if audio_duration < Asset.FADE_DURATION * 2:
-			#	audio_duration = Asset.FADE_DURATION * 2
-			audio_file = self.audiobible.cloned_mp3(verse)
-			audio_stream = ffmpeg.input(str(audio_file)).audio.filter('atrim', duration=audio_duration)
-			audio_stream = audio_stream.filter('loudnorm', I=-16, TP=-1.5, LRA=11)
-			audio_stream = audio_stream.filter('asetpts', 'PTS-STARTPTS')
-			silence_before = ffmpeg.input('anullsrc=r=44100:cl=stereo', t=FADE_DURATION, f='lavfi')
-			silence_after = ffmpeg.input('anullsrc=r=44100:cl=stereo', t=FADE_DURATION, f='lavfi')
-			full_audio = ffmpeg.concat(silence_before.audio, audio_stream, silence_after.audio, v=0, a=1)
-			segments_list.append(full_audio)
-		return segments_list
-
-	@property
-	def duration(self):
-		total = 0.0
-		#bible_audio = self.parashah.parashot.bible.audio
-		for verse in self.parashah.verses:
-			book_num = verse.chapter.book.number
-			chapter_num = verse.chapter.number
-			verse_num = verse.number
-			if not self.audiobible.has_cloned_audio(verse):
-				continue
-			audio_duration = self.audiobible.cloned_duration(verse)
-			if audio_duration == 0.0:
-				continue
-			if audio_duration < Asset.FADE_DURATION * 2:
-				audio_duration = Asset.FADE_DURATION * 2
-			total += Asset.FADE_DURATION + audio_duration + Asset.FADE_DURATION
-		return total
 
 	def set_id3_tags(self, filename):
 		audio = ID3()
@@ -356,17 +308,19 @@ class ParashahAudio():
 		audio.add(TCOP(encoding=3, text=''))
 		audio.save(filename, v2_version=3)
 
-
-	@property
-	def stream(self):
-		segments = ffmpeg.concat(*self.segments, v=0, a=1).node[0]
-		return segments
-
-
 	def export_mp3(self):
-#		stream_to_export = self.enhanced_stream if self.music else self.stream
-		filename = os.path.join(OUTPUT_FOLDER, f'{self.basename}.mp3')
-		#ffmpeg.output(self.stream, filename, acodec='mp3').overwrite_output().run()
+		Asset.TORAH_FOLDER.mkdir(parents=True, exist_ok=True)
+		files = []
+		for episode in self.parashah.episodes:
+			episode_audio = EpisodeAudio(episode)
+			if not episode_audio.filename.exists():
+				episode_audio.export_mp3()
+			files.append(episode_audio.filename)
+		list_file = Path("build") / f'{self.basename}.txt'
+		list_file.parent.mkdir(parents=True, exist_ok=True)
+		list_file.write_text(''.join(f"file '{f.resolve()}'\n" for f in files))
+		filename = Asset.TORAH_FOLDER / f'{self.basename}.mp3'
+		ffmpeg.input(str(list_file), f='concat', safe=0).output(str(filename), c='copy').run(overwrite_output=True)
 		self.set_id3_tags(filename)
 
 
@@ -723,7 +677,10 @@ class EpisodeAudio:
 	def stream(self):
 		return ffmpeg.concat(*self.segments, v=0, a=1).node[0]
 
+	@property
+	def filename(self):
+		return Asset.TORAH_FOLDER / f'{self.basename}.mp3'
+
 	def export_mp3(self):
-		filename = Path(OUTPUT_FOLDER) / f'{self.basename}.mp3'
-		print (filename)
-		ffmpeg.output(self.stream, filename=filename, acodec='mp3').overwrite_output().run()
+		self.filename.parent.mkdir(parents=True, exist_ok=True)
+		ffmpeg.output(self.stream, filename=str(self.filename), acodec='mp3').overwrite_output().run()
