@@ -23,13 +23,14 @@ class Video(Asset.Asset):
 
 	def export(self):
 		Path(self.filename).parent.mkdir(parents=True, exist_ok=True)
+		part = Path(self.filename).with_suffix('.part.mp4')
 		video = self.video_stream
 		audio = self.audio_stream
 #		full_path = os.path.join(OUTPUT_FOLDER, self.filename)
 		ffmpeg.output(
 			video, 
 			audio, 
-			self.filename, 
+			str(part), 
 			vcodec='libx264', 
 			preset='veryfast', 
 			crf=23, 
@@ -37,6 +38,7 @@ class Video(Asset.Asset):
 			audio_bitrate='192k', 
 			pix_fmt='yuv420p'
 		).run(overwrite_output=True)
+		os.replace(part, self.filename)
 
 
 
@@ -116,7 +118,9 @@ class EpisodeVideo(Video):
 		list_file = folder / "clips.txt"
 		list_file.write_text(''.join(f"file '{clip.resolve()}'\n" for clip in clips))
 		video = ffmpeg.input(str(list_file), f='concat', safe=0)
-		ffmpeg.output(video.video, self.audio_stream, self.filename, vcodec='copy', acodec='aac', audio_bitrate='192k').run(overwrite_output=True)
+		part = Path(self.filename).with_suffix('.part.mp4')
+		ffmpeg.output(video.video, self.audio_stream, str(part), vcodec='copy', acodec='aac', audio_bitrate='192k').run(overwrite_output=True)
+		os.replace(part, self.filename)
 
 
 
@@ -333,4 +337,6 @@ class ParashahVideo(Video):
 		list_file = Path(BUILD_FOLDER) / f'torah-{self.parashah.number:02d}.txt'
 		list_file.parent.mkdir(parents=True, exist_ok=True)
 		list_file.write_text(''.join(f"file '{Path(f).resolve()}'\n" for f in files))
-		ffmpeg.input(str(list_file), f='concat', safe=0).output(self.filename, c='copy').run(overwrite_output=True)
+		part = Path(self.filename).with_suffix('.part.mp4')
+		ffmpeg.input(str(list_file), f='concat', safe=0).output(str(part), c='copy').run(overwrite_output=True)
+		os.replace(part, self.filename)

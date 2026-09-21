@@ -1,24 +1,26 @@
 #!/usr/bin/env python3
 """
-Batch export script for the Psalm buffer (rows 8‑23 in the schedule).
+Export psalm audio and videos.
 Run from the Studio/ folder with:
 
-	PYTHONPATH=/root/WORK/Libraries:/root/WORK/MediaLibraries:/root/WORK/Scriptures:/root/WORK/StyledScriptures python automate.py
+	PYTHONPATH=/root/WORK/Libraries:/root/WORK/MediaLibraries:/root/WORK/Scriptures:/root/WORK/StyledScriptures python3 export.py [type] psalm... [--cache]
 
-It generates, for every psalm in PSALM_NUMBERS, two audio files and two videos:
-- Library audio (bare narration)            → output/psalms/
-- Score audio   (narration + music)         → output/psalms+/
-- Landscape Library video (horizontal, no music)  → YouTube
-- Vertical Score video    (portrait, with music)  → TikTok / Shorts / Instagram
+	export.py 8 46 75 --cache    all four files of each psalm, the batch
+	export.py score 117          only the vertical video with music (the smallest one)
+	export.py library 117        only the landscape video, no music (YouTube)
+	export.py score-audio 117    only the mp3 with music     → output/psalms+/
+	export.py library-audio 117  only the bare narration mp3 → output/psalms/
 
-Re‑entrant: checks whether each file already exists; if so, skips it.
-With --force, existing files are overwritten instead.
+Without a type all four are exported. Files are overwritten, unless --cache is
+given: then a file that already exists is skipped, so an interrupted batch can
+be started again with the same command and continues where it stopped.
+Files are written as name.part.ext and renamed when complete, so a file that
+exists is a finished one.
 """
 
 import sys
 from pathlib import Path
 
-# Studio‑local imports (the script runs from the Studio folder).
 from Bible import Bible
 from Psalms import Psalms
 import Asset
@@ -27,51 +29,55 @@ from Video import PsalmVideo
 from Overlay import PsalmCover
 import Media
 
-# ── Psalm list from the buffer (sorted) ──
-#PSALM_NUMBERS = [16, 35, 41, 42, 44, 59, 77, 84, 86, 93, 99, 105, 129, 130, 137, 150, 32, 90, 8, 46, 75, 117, 47]
-#PSALM_NUMBERS = [32, 90, 8, 46, 75, 117, 47]
-#PSALM_NUMBERS = [44, 105, 86, 137, 99, 41, 52, 2, 66, 6, 70, 101, 10, 74, 125, 3]
-#[8, 46, 75, 90, 117, 32, 47, 84, 93, 16, 129, 42, 35, 77]
-PSALM_NUMBERS = [117]  # test: the shortest psalm
+TYPES = ("score", "library", "score-audio", "library-audio")
+
+def usage(message):
+	sys.exit(f"{message}\nusage: export.py [{'|'.join(TYPES)}] psalm... [--cache]")
 
 def main():
-	force = "--force" in sys.argv
+	args = sys.argv[1:]
+	cache = "--cache" in args
+	args = [arg for arg in args if arg != "--cache"]
+	types = TYPES
+	if args and not args[0].isdigit():
+		if args[0] not in TYPES:
+			usage(f"unknown type '{args[0]}'")
+		types = (args.pop(0),)
+	if not args:
+		usage("no psalm numbers")
+	if not all(arg.isdigit() and 1 <= int(arg) <= 150 for arg in args):
+		usage("psalm numbers go from 1 to 150")
+
 	bible = Bible()
 	psalms = Psalms(bible)
 
-	for num in PSALM_NUMBERS:
+	for num in map(int, args):
 		print(f"\n── Psalm {num} ──")
 		psalm = psalms[num - 1]
 
-		# Square cover – the mp3 tags embed it, so it must exist before the audio.
-		PsalmCover(psalm, Media.SD).export()
+		if "score-audio" in types or "library-audio" in types:
+			PsalmCover(psalm, Media.SD).export()
 
-		# Audio (Library = bare narration, Score = with music).
+		items = []
 		for music, folder in ((False, Asset.LIBRARY_AUDIO_FOLDER), (True, Asset.SCORE_AUDIO_FOLDER)):
 			audio = PsalmAudio(psalm, music=music)
-			if force or not (Path(folder) / f"{audio.basename}.mp3").exists():
-				print(f"  Generating {'Score' if music else 'Library'} audio …")
-				audio.export()
-			else:
-				print(f"  {'Score' if music else 'Library'} audio already exists, skipping")
+			items.append(("score-audio" if music else "library-audio", "Score audio" if music else "Library audio",
+					Path(folder) / f"{audio.basename}.mp3", audio))
+		library = PsalmVideo(psalm, size=Media.HDH)
+		score = PsalmVideo(psalm, size=Media.SDV, music=True)
+		items.append(("library", "Library H", library.filename, library))
+		items.append(("score", "Score V", score.filename, score))
 
-		# Landscape Library video (horizontal, no music) – YouTube.
-		lib_h = PsalmVideo(psalm, size=Media.HDH)
-		if force or not Path(lib_h.filename).exists():
-			print(f"  Generating Library H …")
-			lib_h.export()
-		else:
-			print(f"  Library H already exists, skipping")
+		for type, name, filename, item in items:
+			if type not in types:
+				continue
+			if cache and Path(filename).exists():
+				print(f"  {name} already exists, skipping")
+				continue
+			print(f"  Generating {name} …")
+			item.export()
 
-		# Vertical Score video (portrait, with music) – TikTok / Shorts / IG.
-		score_v = PsalmVideo(psalm, size=Media.SDV, music=True)
-		if force or not Path(score_v.filename).exists():
-			print(f"  Generating Score V …")
-			score_v.export()
-		else:
-			print(f"  Score V already exists, skipping")
-
-	print("\n✅ Batch complete.")
+	print("\n✅ Export complete.")
 
 if __name__ == "__main__":
 	main()

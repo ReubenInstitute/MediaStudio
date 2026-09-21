@@ -121,8 +121,10 @@ class PsalmAudio:
 		folder = Asset.LIBRARY_AUDIO_FOLDER if not self.music else Asset.SCORE_AUDIO_FOLDER
 		os.makedirs(folder, exist_ok=True)
 		filename = folder / f'{self.basename}.mp3'
-		ffmpeg.output(self.stream, str(filename), acodec='mp3').overwrite_output().run()
-		self.set_tags(filename)
+		part = filename.with_suffix('.part.mp3')
+		ffmpeg.output(self.stream, str(part), acodec='mp3').overwrite_output().run()
+		self.set_tags(part)
+		os.replace(part, filename)
 
 	def export_sln(self):
 		folder = Asset.LIBRARY_AUDIO_FOLDER if not self.music else Asset.SCORE_AUDIO_FOLDER
