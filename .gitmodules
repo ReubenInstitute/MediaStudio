@@ -16,7 +16,7 @@
 	branch = main
 [submodule "assets"]
 	path = assets
-	url = https://github.com/ReubenInstitute/Studio-assets
+	url = https://github.com/ReubenInstitute/MediaStudio-assets
 	branch = main
 [submodule "output"]
 	path = output
