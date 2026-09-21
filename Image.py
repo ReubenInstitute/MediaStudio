@@ -74,27 +74,28 @@ class Image(Asset):
 		image.save(self.filename)
 
 
+	# Two-layer drop shadow: a wide soft glow for separation from the video, and a tight dark core for
+	# contact definition. Pure gaussian blur (no dilation, which makes square/blocky edges).
+	SHADOW_OFFSET = (2, 3)
+	SHADOW_LAYERS = ((7, 150), (2, 200))	# (blur radius, opacity 0-255)
+	SHADOW_PAD = 3 * max(r for r, _ in SHADOW_LAYERS) + max(SHADOW_OFFSET)	# gaussian tail is ~3 sigma; keeps it uncut
+
 	@staticmethod
 	def add_shadow(image):
-		alpha = image.getchannel('A')
-		pad = 4 + 4*1 + 5*2
-		pad = 20
-		shadow_size = (alpha.width + pad*2, alpha.height + pad*2)
-		shadow_mask = PILImage.new('L', shadow_size, 0)
-		shadow_mask.paste(alpha, (pad, pad))
-		for _ in range(4):
-			shadow_mask = shadow_mask.filter(ImageFilter.MaxFilter(3))
-		shadow_mask = shadow_mask.filter(ImageFilter.GaussianBlur(5))
-		crop_x = (shadow_size[0] - (alpha.width + 8)) // 2
-		crop_y = (shadow_size[1] - (alpha.height + 8)) // 2
-		shadow_mask = shadow_mask.crop((crop_x, crop_y, crop_x + alpha.width + 8, crop_y + alpha.height + 8))
-		shadow_image = PILImage.new('RGBA', (alpha.width + 8, alpha.height + 8), (0, 0, 0, 250))
-		shadow_image.putalpha(shadow_mask)
-		composite = shadow_image.copy()
-		composite.paste(image, (4, 4), image)
+		"""Return a bigger RGBA image (grown by SHADOW_PAD on every side) with a soft shadow behind the given image."""
+		pad = Image.SHADOW_PAD
+		ox, oy = Image.SHADOW_OFFSET
+		size = (image.width + pad*2, image.height + pad*2)
+		alpha = PILImage.new('L', size, 0)
+		alpha.paste(image.getchannel('A'), (pad + ox, pad + oy))
+		composite = PILImage.new('RGBA', size, (0, 0, 0, 0))
+		for radius, opacity in Image.SHADOW_LAYERS:
+			mask = alpha.filter(ImageFilter.GaussianBlur(radius)).point(lambda a: a * opacity // 255)
+			layer = PILImage.new('RGBA', size, (0, 0, 0, 0))
+			layer.putalpha(mask)
+			composite.alpha_composite(layer)
+		composite.alpha_composite(image.convert('RGBA'), (pad, pad))
 		return composite
-
-
 
 
 	@staticmethod
@@ -142,7 +143,7 @@ class Image(Asset):
 		if anchor == "mm":
 			self._image.paste(shadowed_image, (int(xy[0] - (shadowed_image.width / 2)), int(xy[1] - (shadowed_image.height / 2))), shadowed_image)
 		else:
-			self._image.paste(shadowed_image, (int(xy[0] - 4), int(xy[1] - 4)), shadowed_image)
+			self._image.paste(shadowed_image, (int(xy[0] - self.SHADOW_PAD), int(xy[1] - self.SHADOW_PAD)), shadowed_image)
 
 
 

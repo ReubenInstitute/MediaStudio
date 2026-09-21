@@ -7,6 +7,13 @@ import io
 
 SOURCE = 'assets/back.orig.mp4'
 SQUARE_SCALE = 0.9
+# Squash the tonal range so the fog stays behind the text: blacks lift to BLACK_LEVEL, whites drop to WHITE_LEVEL (0-1).
+BLACK_LEVEL = 0.28
+WHITE_LEVEL = 0.80
+
+def soften(stream):
+	expr = f'{BLACK_LEVEL}*maxval+val*{WHITE_LEVEL - BLACK_LEVEL}'
+	return stream.filter('lutrgb', r=expr, g=expr, b=expr)
 
 def extract_frame(video_path, output_path, time=2):
 	frame_data, _ = (
@@ -20,8 +27,7 @@ def extract_frame(video_path, output_path, time=2):
 
 def make_square():
 	(
-		ffmpeg
-		.input(SOURCE)
+		soften(ffmpeg.input(SOURCE))
 		.filter('crop',
 			w='min(iw,ih)-mod(min(iw,ih),2)',
 			h='min(iw,ih)-mod(min(iw,ih),2)',
@@ -71,6 +77,8 @@ def make_orientation(input_file, target_w, target_h, output_file, square=False):
 
 	print(output_file)
 	stream = ffmpeg.input(input_file)
+	if input_file == SOURCE:
+		stream = soften(stream)
 	if square:
 		stream = stream.filter('crop', w='ih', h='ih', x='(iw-ow)/2', y=0)
 	(

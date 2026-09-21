@@ -342,7 +342,7 @@ class PsalmOverlay(Image):
 		logo_y = int(self.height * LOGO_Y)
 		logo = PILImage.open("logo.png").resize((logo_size, logo_size))
 		logo = Image.add_shadow(logo)
-		self._image.paste(logo, (logo_x, logo_y), logo)
+		self._image.paste(logo, (logo_x - Image.SHADOW_PAD, logo_y - Image.SHADOW_PAD), logo)
 		title_y = int(self.height * TITLE_Y)
 		self.draw_text((self.width // 2, title_y), "תהילים",
 				PSALM_TITLE_FONT, TITLE_FONTSIZE,
