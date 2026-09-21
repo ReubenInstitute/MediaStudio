@@ -394,12 +394,12 @@ class PoemVersePlate(Plate):
 		margin = int(self.width * 0.10)
 		available_width = self.width - 2 * margin
 
-		font = Plate.expand(self.slide.layout, "TaameyFrankCLM-Medium.ttf", available_width, safe_height)
+		font = Plate.expand(self.slide.layout, "OpenSansHebrewRI-Regular.ttf", available_width, safe_height)
 
 		total_height = 0
 		for line in self.slide.layout:
 			text = ' '.join(word.text for word in line)
-			box = Image.bbox((0, 0), text, "TaameyFrankCLM-Medium.ttf", font.size)
+			box = Image.bbox((0, 0), text, "OpenSansHebrewRI-Regular.ttf", font.size)
 			total_height += (box[3] - box[1])
 
 		y = header_height + (safe_height - total_height) // 2
@@ -407,9 +407,9 @@ class PoemVersePlate(Plate):
 		first = 1
 		for line in self.slide.layout:
 			text = ' '.join(word.text for word in line)
-			box = Image.bbox((0, 0), text, "TaameyFrankCLM-Medium.ttf", font.size)
+			box = Image.bbox((0, 0), text, "OpenSansHebrewRI-Regular.ttf", font.size)
 			line_height = box[3] - box[1]
-			self.draw_centered(0, y, self.width, line, "FrankCurledLamed/FrankCurledLamedRI.ttf", font.size, "#ffffff", rtl=True,
+			self.draw_centered(0, y, self.width, line, "OpenSansHebrewRI-Regular.ttf", font.size, "#ffffff", rtl=True,
 					highlight=self.highlight, first=first)
 			first += len(line)
 			y += line_height
@@ -585,12 +585,12 @@ class PsalmSlide(Slide):
 		margin = int(self.width * 0.10)
 		available_width = self.width - 2 * margin
 
-		font = Slide.expand(self.layout, "TaameyFrankCLM-Medium.ttf", available_width, safe_height)
+		font = Slide.expand(self.layout, "OpenSansHebrewRI-Regular.ttf", available_width, safe_height)
 
 		total_height = 0
 		for line in self.layout:
 			text = ' '.join(word.text for word in line)
-			box = Image.bbox((0, 0), text, "TaameyFrankCLM-Medium.ttf", font.size)
+			box = Image.bbox((0, 0), text, "OpenSansHebrewRI-Regular.ttf", font.size)
 			total_height += (box[3] - box[1])
 
 		y = header_height + (safe_height - total_height) // 2
@@ -598,9 +598,9 @@ class PsalmSlide(Slide):
 
 		for line in self.layout:
 			text = ' '.join(word.text for word in line)
-			box = Image.bbox((0, 0), text, "TaameyFrankCLM-Medium.ttf", font.size)
+			box = Image.bbox((0, 0), text, "OpenSansHebrewRI-Regular.ttf", font.size)
 			line_height = box[3] - box[1]
-			self.draw_centered_slide(0, y, self.width, line, "FrankCurledLamed/FrankCurledLamedRI.ttf", font.size, "#ffff00", rtl=True, verse=verse_num)
+			self.draw_centered_slide(0, y, self.width, line, "OpenSansHebrewRI-Regular.ttf", font.size, "#ffff00", rtl=True, verse=verse_num)
 			y += line_height
 
 		if self.layout and self.layout[0] and self.layout[0][0] and self.layout[0][0].verse:
