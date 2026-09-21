@@ -38,7 +38,7 @@
 		</td>
 		<td>
 			{% if audio.has_original_audio(verse) %}
-			<a href="/clone/{{ verse.chapter.book.number }}/{{ verse.chapter.number }}/{{ verse.number }}">👥 Generate Clone</a>
+			<a href="/parashot/clone/{{ verse.chapter.book.number }}/{{ verse.chapter.number }}/{{ verse.number }}">👥 Generate Clone</a>
 			{% endif %}
 		</td>
 		<td>
@@ -48,10 +48,10 @@
 			{{ "%02d:%02d"|format(dur // 60, dur % 60) }}
 			{% endif %}
 		</td>
-		<td><a href="/{{ episode.parashah.number }}/{{ episode.number }}/{{verse.number  }}/audio">✏️ Edit Audio</a></td>
+		<td><a href="/parashot/{{ episode.parashah.number }}/{{ episode.number }}/{{verse.number  }}/audio">✏️ Edit Audio</a></td>
 	</tr>
 	{% endfor %}
 </table>
-<a href="/clone/{{ episode.parashah.number }}/{{ episode.number }}">👥 Clone All Missing Verses</a>
-<a href="/generate/video/{{ episode.parashah.number }}/{{ episode.number }}">🎬 Generate Video</a>
+<a href="/parashot/clone/{{ episode.parashah.number }}/{{ episode.number }}">👥 Clone All Missing Verses</a>
+<a href="/parashot/generate/video/{{ episode.parashah.number }}/{{ episode.number }}">🎬 Generate Video</a>
 {% endblock %}

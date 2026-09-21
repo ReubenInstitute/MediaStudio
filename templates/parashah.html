@@ -2,8 +2,7 @@
 
 {% block content %}
 <h1>{{ parashah.hebrew_name }}</h1>
-<a href="/{{ parashah.number }}/edit">edit</a>
-<a href="/{{ parashah.number }}/pdf">PDF</a>
+<a href="/parashot/{{ parashah.number }}/edit">edit</a>
 <h2>Chapters</h2>
 <table>
 	<tr>
@@ -17,13 +16,13 @@
 	{% set episode = entry.episode %}
 	<tr>
 		<td>{{ episode.number }}</td>
-		<td><a href="/{{ parashah.number }}/{{ episode.number }}">{{ episode.hebrew_title }}</a></td>
+		<td><a href="/parashot/{{ parashah.number }}/{{ episode.number }}">{{ episode.hebrew_title }}</a></td>
 		<td>{{ entry.original_duration }}</td>
 		<td>{{ entry.cloned_duration }}</td>
 		<td style="background-color: {{ episode.color }}; width: 50px;"></td>
 	</tr>
 	{% endfor %}
 </table>
-<a href="/{{ parashah.number }}/export-audio">🔊 Export Audio</a>
-<a href="/generate/video/{{ parashah.number }}/full">🎬 Full Parashah Video</a>
+<a href="/parashot/{{ parashah.number }}/export-audio">🔊 Export Audio</a>
+<a href="/parashot/generate/video/{{ parashah.number }}/full">🎬 Full Parashah Video</a>
 {% endblock %}

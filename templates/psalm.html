@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>Psalm {{ psalm.hebrew_fancy_number }}</h1>
-<a href="/{{ psalm.number }}/edit" class="button">✏️ Edit</a>
+<a href="/psalms/{{ psalm.number }}/edit" class="button">✏️ Edit</a>
 <p class="rtl">{{ psalm.hebrew_description }}</p>
 <section class="psalm scriptures rtl">
 	{% for paragraph in psalm.layout %}
@@ -41,7 +41,7 @@
 		</td>
 		<td>
 			{% if audio.has_original_audio(verse) %}
-			<a class="button" href="/clone-verse/27/{{ psalm.number }}/{{ verse.number }}">⚡</a>
+			<a class="button" href="/psalms/clone-verse/27/{{ psalm.number }}/{{ verse.number }}">⚡</a>
 			{% endif %}
 		</td>
 		<td>
@@ -50,7 +50,7 @@
 			{% endif %}
 		</td>
 		<td>
-			<a class="button" href="/{{ psalm.number }}/{{ verse.number }}/audio">✏️</a>
+			<a class="button" href="/psalms/{{ psalm.number }}/{{ verse.number }}/audio">✏️</a>
 		</td>
 		<td>
 			{% if audio.has_cloned_audio(verse) %}
@@ -62,23 +62,23 @@
 	{% endfor %}
 </table>
 
-<a class="button" href="/clone/{{ psalm.number }}">Clone Missing</a>
-<a class="button" href="/{{ psalm.number }}/align">Edit BPM</a>
-<a class="button" href="/align/{{ psalm.number }}">Word Align</a>
+<a class="button" href="/psalms/clone/{{ psalm.number }}">Clone Missing</a>
+<a class="button" href="/psalms/{{ psalm.number }}/align">Edit BPM</a>
+<a class="button" href="/psalms/align/{{ psalm.number }}">Word Align</a>
 
 <h2>Export</h2>
 <table class="layout">
 	<tr>
-		<td><a class="button" href="/export/audio/{{ psalm.number }}"><span class="solid">&#xf001;</span></a></td>
-		<td><a class="button" href="/export/audio/score/{{ psalm.number }}"><span class="solid">&#xf001;</span>&nbsp;Score</a></td>
+		<td><a class="button" href="/psalms/export/audio/{{ psalm.number }}"><span class="solid">&#xf001;</span></a></td>
+		<td><a class="button" href="/psalms/export/audio/score/{{ psalm.number }}"><span class="solid">&#xf001;</span>&nbsp;Score</a></td>
 		<td></td>
-		<td><a class="button" href="/export/covers/{{ psalm.number }}">Covers</a></td>
+		<td><a class="button" href="/psalms/export/covers/{{ psalm.number }}">Covers</a></td>
 	</tr>
 	<tr>
-		<td><a class="button" href="/export/video/horizontal/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;H</a></td>
-		<td><a class="button" href="/export/video/score/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;Score</a></td>
-		<td><a class="button" href="/export/video/score/horizontal/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;Score&nbsp;H</a></td>
-		<td><a class="button" href="/export/video/cinematic/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;Cinematic</a></td>
+		<td><a class="button" href="/psalms/export/video/horizontal/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;H</a></td>
+		<td><a class="button" href="/psalms/export/video/score/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;Score</a></td>
+		<td><a class="button" href="/psalms/export/video/score/horizontal/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;Score&nbsp;H</a></td>
+		<td><a class="button" href="/psalms/export/video/cinematic/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;Cinematic</a></td>
 	</tr>
 </table>
 
@@ -96,7 +96,7 @@
 <section class="preview">
 	{% for paragraph in psalm.paragraphs %}
 	{% for verse in paragraph.verses %}
-	<img src="/preview/psalm/{{ psalm.number }}/{{ paragraph.number }}/{{ verse.number }}.png" loading="lazy">
+	<img src="/psalms/preview/psalm/{{ psalm.number }}/{{ paragraph.number }}/{{ verse.number }}.png" loading="lazy">
 	{% endfor %}
 	{% endfor %}
 </section>
@@ -105,7 +105,7 @@
 <section class="preview-wide">
 	{% for paragraph in psalm.paragraphs %}
 	{% for verse in paragraph.verses %}
-	<img src="/preview/psalm/{{ psalm.number }}/{{ paragraph.number }}/{{ verse.number }}/horizontal.png" loading="lazy">
+	<img src="/psalms/preview/psalm/{{ psalm.number }}/{{ paragraph.number }}/{{ verse.number }}/horizontal.png" loading="lazy">
 	{% endfor %}
 	{% endfor %}
 </section>
