@@ -10,6 +10,24 @@ from Asset import Asset
 import Media
 from pathlib import Path
 
+PSALM_COVER_HEADLINE_FONT = "LulavCLM-Bold.otf"
+PSALM_COVER_TITLE_FONT = "LulavCLM-Bold.otf"
+PSALM_COVER_SUBTITLE_FONT = "LulavCLM-Bold.otf"
+
+PARASHAH_COVER_HEADLINE_FONT = "LulavCLM-Bold.otf"
+PARASHAH_COVER_TITLE_FONT = "LulavCLM-Bold.otf"
+PARASHAH_COVER_SUBTITLE_FONT = "LulavCLM-Bold.otf"
+
+PSALM_TITLE_FONT = "LulavCLM-Bold.otf"
+PSALM_SUBTITLE_FONT = "LulavCLM-Bold.otf"
+PSALM_TEXT_FONT = "OpenSansHebrewCondensedRI-Bold.ttf"
+PSALM_FOOTER_FONT = "OpenSansHebrewCondensed-Bold.ttf"
+
+PARASHAH_TITLE_FONT = "OpenSansHebrewCondensed-Bold.ttf"
+PARASHAH_SUBTITLE_FONT = "OpenSansHebrewCondensed-Regular.ttf"
+PARASHAH_TEXT_FONT = "OpenSansHebrewCondensedRI-Bold.ttf"
+PARASHAH_FOOTER_FONT = "OpenSansHebrewCondensed-Bold.ttf"
+
 OUTPUT_FOLDER = Path("output")
 ASSETS_FOLDER = Path("assets")
 BUILD_FOLDER = Path("build")
@@ -18,8 +36,10 @@ BUILD_FOLDER = Path("build")
 
 
 class PsalmCover(Image):
+	HEADLINE_FONT   = 0.10
 	TITLE_FONT	  = 0.167
 	NUMBER_FONT	 = 0.361
+	HEADLINE_Y	  = 0.22
 	TITLE_Y		 = 0.3646
 	NUMBER_Y		= 0.6354
 	SAFEZONE_CENTER = 0.458
@@ -68,16 +88,22 @@ class PsalmCover(Image):
 
 		shorter_side = min(self.width, self.height)
 
+		headline_font_size = int(shorter_side * self.HEADLINE_FONT)
 		title_font_size  = int(shorter_side * self.TITLE_FONT)
 		number_font_size = int(shorter_side * self.NUMBER_FONT)
 
-		title_text = "תהילים"
-		title_bbox = self.bbox((0, 0), title_text, "LulavCLM-Bold.otf", title_font_size)
+		headline_text = "תהילים"
+		headline_bbox = self.bbox((0, 0), headline_text, PSALM_COVER_HEADLINE_FONT, headline_font_size)
+		headline_w = headline_bbox[2] - headline_bbox[0]
+		headline_h = headline_bbox[3] - headline_bbox[1]
+
+		title_text = "מזמור"
+		title_bbox = self.bbox((0, 0), title_text, PSALM_COVER_TITLE_FONT, title_font_size)
 		title_w = title_bbox[2] - title_bbox[0]
 		title_h = title_bbox[3] - title_bbox[1]
 
 		number_text = self.psalm.hebrew_number
-		number_bbox = self.bbox((0, 0), number_text, "LulavCLM-Bold.otf", number_font_size)
+		number_bbox = self.bbox((0, 0), number_text, PSALM_COVER_SUBTITLE_FONT, number_font_size)
 		number_w = number_bbox[2] - number_bbox[0]
 		number_h = number_bbox[3] - number_bbox[1]
 
@@ -88,15 +114,20 @@ class PsalmCover(Image):
 
 		square_top = block_center_y - shorter_side // 2
 
+		headline_x = (self.width - headline_w) // 2
+		headline_y = square_top + int(shorter_side * self.HEADLINE_Y) - headline_h // 2
+
 		title_x = (self.width - title_w) // 2
 		title_y = square_top + int(shorter_side * self.TITLE_Y) - title_h // 2
 
 		number_x = (self.width - number_w) // 2
 		number_y = square_top + int(shorter_side * self.NUMBER_Y) - number_h // 2
 
-		self.draw_text((title_x, title_y), title_text, "LulavCLM-Bold.otf", title_font_size,
+		self.draw_text((headline_x, headline_y), headline_text, PSALM_COVER_HEADLINE_FONT, headline_font_size,
+					   color="#ffffff", shadow=True, direction="rtl")
+		self.draw_text((title_x, title_y), title_text, PSALM_COVER_TITLE_FONT, title_font_size,
 					   color="#ffff00", shadow=True, direction="rtl")
-		self.draw_text((number_x, number_y), number_text, "LulavCLM-Bold.otf", number_font_size,
+		self.draw_text((number_x, number_y), number_text, PSALM_COVER_SUBTITLE_FONT, number_font_size,
 					   color="#ffffff", shadow=True, direction="rtl")
 
 		return self._image
@@ -107,6 +138,82 @@ class PsalmCover(Image):
 
 
 
+
+
+class ParashahCover(Image):
+	HEADLINE_FONT   = 0.10
+	TITLE_FONT	  = 0.167
+	SUBTITLE_FONT   = 0.24
+	HEADLINE_Y	  = 0.22
+	TITLE_Y		 = 0.3646
+	SUBTITLE_Y	  = 0.6354
+	SAFEZONE_CENTER = 0.458
+	MARGIN		  = 0.9
+
+	def __init__(self, parashah, size):
+		super().__init__(size)
+		self.parashah = parashah
+
+	@property
+	def filename(self):
+		base = OUTPUT_FOLDER / 'torah' / 'covers'
+		f = f'torah-{self.parashah.number:02d}.jpg'
+		if self.square:
+			return str(base / 'square' / f)
+		elif self.landscape:
+			return str(base / 'horizontal' / f)
+		else:
+			return str(base / f)
+
+	def fit(self, text, font, size):
+		while size > 20:
+			box = self.bbox((0, 0), text, font, size)
+			if box[2] - box[0] <= self.width * self.MARGIN:
+				break
+			size -= 2
+		return size
+
+	@property
+	def image(self):
+		if self.square:
+			bg_path = ASSETS_FOLDER / "back.jpg"
+		elif self.landscape:
+			bg_path = ASSETS_FOLDER / "back-1280x720.jpg"
+		else:
+			bg_path = ASSETS_FOLDER / "back-720x1280.jpg"
+		background = PILImage.open(bg_path).convert('RGB')
+		color_overlay = PILImage.new('RGB', (self.width, self.height), self.parashah.color)
+		background = PILImage.blend(background.convert('RGBA'), color_overlay.convert('RGBA'), alpha=0.7)
+		self._image = background.filter(ImageFilter.GaussianBlur(2))
+
+		shorter_side = min(self.width, self.height)
+
+		headline_text = "תורה"
+		title_text = f"ספר {self.parashah.book.hebrew_name}"
+		subtitle_text = f"פרשת {self.parashah.hebrew_name}"
+
+		subtitle_font_size = self.fit(subtitle_text, PARASHAH_COVER_SUBTITLE_FONT, int(shorter_side * self.SUBTITLE_FONT))
+		title_font_size = self.fit(title_text, PARASHAH_COVER_TITLE_FONT, min(int(shorter_side * self.TITLE_FONT), int(subtitle_font_size * 0.7)))
+		headline_font_size = min(int(shorter_side * self.HEADLINE_FONT), int(title_font_size * 0.8))
+
+		if self.width < self.height:
+			block_center_y = int(self.height * self.SAFEZONE_CENTER)
+		else:
+			block_center_y = self.height // 2
+		square_top = block_center_y - shorter_side // 2
+
+		lines = [
+			(headline_text, PARASHAH_COVER_HEADLINE_FONT, headline_font_size, self.HEADLINE_Y, "#ffffff"),
+			(title_text, PARASHAH_COVER_TITLE_FONT, title_font_size, self.TITLE_Y, "#ffff00"),
+			(subtitle_text, PARASHAH_COVER_SUBTITLE_FONT, subtitle_font_size, self.SUBTITLE_Y, "#ffffff"),
+		]
+		for text, font, font_size, y, color in lines:
+			box = self.bbox((0, 0), text, font, font_size)
+			x = (self.width - (box[2] - box[0])) // 2
+			top = square_top + int(shorter_side * y) - (box[3] - box[1]) // 2
+			self.draw_text((x, top), text, font, font_size, color=color, shadow=True, direction="rtl")
+
+		return self._image
 
 
 class EpisodeCover(Image):
@@ -171,9 +278,9 @@ class EpisodeOverlay(Image):
 		image.paste(logo, (306, 100), logo)
 		self._image = image
 		self.draw_text((360, 248), f"פרשת {self.episode.parashah.hebrew_name}",
-				"OpenSansHebrewCondensed-Bold.ttf", 30, color="#ffffff", anchor="mm", direction="rtl")
+				PARASHAH_TITLE_FONT, 30, color="#ffffff", anchor="mm", direction="rtl")
 		self.draw_text((360, 308), self.episode.hebrew_title.replace('\u2028', ' '),
-				"OpenSansHebrewCondensed-Regular.ttf", 60, color="#ffffff", anchor="mm", direction="rtl")
+				PARASHAH_SUBTITLE_FONT, 60, color="#ffffff", anchor="mm", direction="rtl")
 		return self._image
 
 
@@ -238,11 +345,11 @@ class PsalmOverlay(Image):
 		self._image.paste(logo, (logo_x, logo_y), logo)
 		title_y = int(self.height * TITLE_Y)
 		self.draw_text((self.width // 2, title_y), "תהילים",
-				"LulavCLM-Bold.otf", TITLE_FONTSIZE,
+				PSALM_TITLE_FONT, TITLE_FONTSIZE,
 				color="#ffffff", anchor="mm", direction="rtl")
 		number_y = int(self.height * NUMBER_Y)
 		self.draw_text((self.width // 2, number_y), f"מזמור {self.psalm.hebrew_number}",
-				"LulavCLM-Bold.otf", NUMBER_FONTSIZE,
+				PSALM_SUBTITLE_FONT, NUMBER_FONTSIZE,
 				color="#ffffff", anchor="mm", direction="rtl")
 		return self._image
 
@@ -284,11 +391,11 @@ class NarrationParagraphVersePlate(Plate):
 		total_height = 0
 		all_sublines = []
 		for visual_line in layout:
-			sublines = Plate.wrap(visual_line, "SBLHebrew.ttf", font_size, available_width)
+			sublines = Plate.wrap(visual_line, PARASHAH_TEXT_FONT, font_size, available_width)
 			for line_words in sublines:
 				if line_words:
 					text = ' '.join(word.text for word in line_words)
-					box = Image.bbox((0, 0), text, "SBLHebrew.ttf", font_size, direction="rtl")
+					box = Image.bbox((0, 0), text, PARASHAH_TEXT_FONT, font_size, direction="rtl")
 					line_height = box[3] - box[1]
 					total_height += line_height
 					all_sublines.append((line_words, line_height))
@@ -296,25 +403,25 @@ class NarrationParagraphVersePlate(Plate):
 		current_y = header_height + (safe_height - total_height) // 2
 		line_index = 0
 		for visual_line in layout:
-			sublines = Plate.wrap(visual_line, "SBLHebrew.ttf", font_size, available_width)
+			sublines = Plate.wrap(visual_line, PARASHAH_TEXT_FONT, font_size, available_width)
 			for j, line_words in enumerate(sublines):
 				if line_words and line_index < len(all_sublines):
 					line_height = all_sublines[line_index][1]
 					draw_y = current_y
 					if j == len(sublines) - 1:
 						self.draw_centered(margin, draw_y, available_width, line_words,
-										   "SBLHebrew.ttf", font_size, "#ffffff",
+										   PARASHAH_TEXT_FONT, font_size, "#ffffff",
 										   rtl=True, verse=self.highlight)
 					else:
 						self.draw_justified(margin, draw_y, available_width, line_words,
-											"SBLHebrew.ttf", font_size, "#ffffff",
+											PARASHAH_TEXT_FONT, font_size, "#ffffff",
 											rtl=True, verse=self.highlight)
 					current_y += line_height * 1.0
 					line_index += 1
 
 		if self.footer:
 			self.draw_text((self.width // 2, header_height + safe_height + (footer_height - 200) // 2),
-					self.footer, "OpenSansHebrewCondensed-Bold.ttf", 30,
+					self.footer, PARASHAH_FOOTER_FONT, 30,
 					color="#ffffff", anchor="mm", direction="rtl")
 		return self._image
 
@@ -394,12 +501,12 @@ class PoemVersePlate(Plate):
 		margin = int(self.width * 0.10)
 		available_width = self.width - 2 * margin
 
-		font = Plate.expand(self.slide.layout, "OpenSansHebrewRI-Regular.ttf", available_width, safe_height)
+		font = Plate.expand(self.slide.layout, PSALM_TEXT_FONT, available_width, safe_height)
 
 		total_height = 0
 		for line in self.slide.layout:
 			text = ' '.join(word.text for word in line)
-			box = Image.bbox((0, 0), text, "OpenSansHebrewRI-Regular.ttf", font.size)
+			box = Image.bbox((0, 0), text, PSALM_TEXT_FONT, font.size)
 			total_height += (box[3] - box[1])
 
 		y = header_height + (safe_height - total_height) // 2
@@ -407,9 +514,9 @@ class PoemVersePlate(Plate):
 		first = 1
 		for line in self.slide.layout:
 			text = ' '.join(word.text for word in line)
-			box = Image.bbox((0, 0), text, "OpenSansHebrewRI-Regular.ttf", font.size)
+			box = Image.bbox((0, 0), text, PSALM_TEXT_FONT, font.size)
 			line_height = box[3] - box[1]
-			self.draw_centered(0, y, self.width, line, "OpenSansHebrewRI-Regular.ttf", font.size, "#ffffff", rtl=True,
+			self.draw_centered(0, y, self.width, line, PSALM_TEXT_FONT, font.size, "#ffffff", rtl=True,
 					highlight=self.highlight, first=first)
 			first += len(line)
 			y += line_height
@@ -419,7 +526,7 @@ class PoemVersePlate(Plate):
 			print (self.footer)
 			print (len(self.footer))
 			self.draw_text((self.width // 2, header_height + safe_height + footer_height // 2),
-					self.footer, "OpenSansHebrewCondensed-Bold.ttf", 35,
+					self.footer, PSALM_FOOTER_FONT, 35,
 					color="#ffffff", anchor="mm", direction="rtl")
 		return self._image
 
