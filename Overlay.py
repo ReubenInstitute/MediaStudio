@@ -20,12 +20,12 @@ PARASHAH_COVER_SUBTITLE_FONT = "LulavCLM-Bold.otf"
 
 PSALM_TITLE_FONT = "LulavCLM-Bold.otf"
 PSALM_SUBTITLE_FONT = "LulavCLM-Bold.otf"
-PSALM_TEXT_FONT = "OpenSansHebrewCondensedRI-Bold.ttf"
+PSALM_TEXT_FONT = "OpenSansHebrewCondensedRI-Regular.ttf"
 PSALM_FOOTER_FONT = "OpenSansHebrewCondensed-Bold.ttf"
 
 PARASHAH_TITLE_FONT = "OpenSansHebrewCondensed-Bold.ttf"
 PARASHAH_SUBTITLE_FONT = "OpenSansHebrewCondensed-Regular.ttf"
-PARASHAH_TEXT_FONT = "OpenSansHebrewCondensedRI-Bold.ttf"
+PARASHAH_TEXT_FONT = "OpenSansHebrewCondensedRI-Regular.ttf"
 PARASHAH_FOOTER_FONT = "OpenSansHebrewCondensed-Bold.ttf"
 
 OUTPUT_FOLDER = Path("output")
