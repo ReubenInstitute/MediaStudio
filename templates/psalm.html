@@ -94,6 +94,7 @@
 
 <h2>Preview</h2>
 <section class="preview">
+	<img src="/psalms/preview/psalm/{{ psalm.number }}/cover.png" loading="lazy">
 	{% for paragraph in psalm.paragraphs %}
 	{% for verse in paragraph.verses %}
 	<img src="/psalms/preview/psalm/{{ psalm.number }}/{{ paragraph.number }}/{{ verse.number }}.png" loading="lazy">
@@ -103,6 +104,7 @@
 
 <h2>Preview HD</h2>
 <section class="preview-wide">
+	<img src="/psalms/preview/psalm/{{ psalm.number }}/cover/horizontal.png" loading="lazy">
 	{% for paragraph in psalm.paragraphs %}
 	{% for verse in paragraph.verses %}
 	<img src="/psalms/preview/psalm/{{ psalm.number }}/{{ paragraph.number }}/{{ verse.number }}/horizontal.png" loading="lazy">

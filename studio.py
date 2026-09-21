@@ -258,6 +258,16 @@ def save_psalm_audio_timing():
 			return redirect(f'/psalms/{next_chapter}/1/audio')
 	return redirect(f'/psalms/{chapter}/{verse_num}/audio')
 
+@app.route('/psalms/preview/psalm/<int:p>/cover.png', defaults={'size': Media.SDV})
+@app.route('/psalms/preview/psalm/<int:p>/cover/horizontal.png', defaults={'size': Media.SDH})
+def preview_psalm_cover(p, size):
+	if not 1 <= p <= 150:
+		abort(404)
+	image = PsalmCover(bible.psalms[p - 1], size).image
+	png = io.BytesIO()
+	image.save(png, 'PNG')
+	return Response(png.getvalue(), mimetype='image/png', headers={'Cache-Control': 'no-store'})
+
 @app.route('/psalms/preview/psalm/<int:p>/<int:paragraph>/<int:verse>.png', defaults={'size': Media.SDV})
 @app.route('/psalms/preview/psalm/<int:p>/<int:paragraph>/<int:verse>/horizontal.png', defaults={'size': Media.HDH})
 def preview_psalm_verse(p, paragraph, verse, size):
