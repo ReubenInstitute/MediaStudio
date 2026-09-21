@@ -9,6 +9,7 @@ import Services
 
 ROOT = Path(__file__).parent
 AUDIO_FOLDER = ROOT / "audio"
+BUILD_FOLDER = ROOT / "build"
 TITLES_CSV = AUDIO_FOLDER / "titles.csv"
 ORIGINAL_CSV = AUDIO_FOLDER / 'original.csv'
 CLONED_CSV = AUDIO_FOLDER / 'cloned.csv'
@@ -384,7 +385,7 @@ _load_timestamps()
 			return
 		start_time, end_time = self.get_timing(verse)
 		basename = f"{verse.chapter.book.number:03d}.{verse.chapter.number:03d}.{verse.number:03d}"
-		wav = ROOT / "audio" / f"{verse.chapter.book.number:02d}.wav"
+		wav = self.wav(verse.chapter.book.number)
 		out = ROOT / "audio" / f"cloned{basename}.mp3"
 		(ffmpeg
 			.input(str(wav), ss=start_time, to=end_time)
@@ -392,6 +393,21 @@ _load_timestamps()
 			.overwrite_output()
 			.run()
 		)
+
+	def wav(self, book):
+		# the wav of a whole book is a temporary artifact, made from the book's mp3 in audio/sources
+		wav = BUILD_FOLDER / "wav" / f"{book:02d}.wav"
+		if not wav.exists():
+			wav.parent.mkdir(parents=True, exist_ok=True)
+			part = wav.with_suffix('.part.wav')
+			(ffmpeg
+				.input(str(AUDIO_FOLDER / "sources" / f"{book:02d}.mp3"))
+				.output(str(part), acodec='pcm_s16le', ac=1)
+				.overwrite_output()
+				.run()
+			)
+			os.replace(part, wav)
+		return wav
 
 	def original_mp3(self, verse):
 		basename = f"{verse.chapter.book.number:03d}.{verse.chapter.number:03d}.{verse.number:03d}.mp3"

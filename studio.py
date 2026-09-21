@@ -547,7 +547,7 @@ def align_chapter(book, chapter):
 def serve_audio_segment(book, frm, to):
 	frm = float(frm)
 	to = float(to)
-	audio_path = f"wav/{book:02d}.wav"
+	audio_path = AudioBible.get_instance().wav(book)
 	process = (
 		ffmpeg
 		.input(audio_path, ss=frm, to=to)
