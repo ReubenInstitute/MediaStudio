@@ -1,6 +1,6 @@
 import os
 import ffmpeg
-from Overlay import ParashahOverlay, PsalmOverlay, EpisodeOverlay, EpisodeParagraphSlide, PsalmVerseSlide, EpisodeCover
+from Overlay import ParashahOverlay, ParashahParagraphSlide, PsalmOverlay, EpisodeOverlay, EpisodeParagraphSlide, PsalmVerseSlide, EpisodeCover
 import Media
 import Asset
 from pathlib import Path
@@ -84,11 +84,22 @@ class EpisodeVideo(Video):
 			image = image.filter('fade', type='out', alpha=fade_out[0], start_time=frames / self.FPS - self.FADE_DURATION, duration=self.FADE_DURATION)
 		return image
 
-	def clip(self, filename, paragraph, verse_index, frames, first, last, first_in_paragraph, last_in_paragraph):
+	def background(self, start, duration):
+		fog_name = "back-720x1280.mp4" if not self.landscape else "back-1280x720.mp4"
+		fog_path = os.path.join(ASSETS_FOLDER, fog_name)
+		fog_length = float(ffmpeg.probe(fog_path)['format']['duration'])
+		background = ffmpeg.input(fog_path, stream_loop=-1, ss=start % fog_length, t=duration)
+		background = background.filter('scale', self.width, self.height, force_original_aspect_ratio='increase')
+		background = background.filter('crop', w=self.width, h=self.height)
+		r, g, b = self.episode.parashah.color
+		color_overlay = ffmpeg.input(f'color=c=#{r:02x}{g:02x}{b:02x}:s={self.width}x{self.height}', f='lavfi', t=duration)
+		return ffmpeg.filter([background, color_overlay], 'blend', all_mode='overlay', all_opacity=self.BACKGROUND_OPACITY)
+
+	def clip(self, filename, paragraph, verse_index, frames, first, last, first_in_paragraph, last_in_paragraph, start):
 		"""One verse as its own small video, so ffmpeg never holds the whole episode in memory."""
 		episode = self.episode
 		prefix = f"{episode.parashah.number}.{episode.number}.{paragraph.number}"
-		background = ffmpeg.input(f'color=c=black:s={self.width}x{self.height}:r={self.FPS}', f='lavfi', t=frames / self.FPS)
+		background = self.background(start, frames / self.FPS)
 		base = self.plate(f"{prefix}.0.png", frames, fade_in=(0,) if first_in_paragraph else None, fade_out=(0,) if last_in_paragraph else None)
 		highlight = self.plate(f"{prefix}.{verse_index}.png", frames, fade_in=(1,), fade_out=(1,))
 		title = self.plate(f"{episode.parashah.number:02d}_{episode.number:02d}_title.png", frames,
@@ -113,7 +124,7 @@ class EpisodeVideo(Video):
 			frames = round(elapsed * self.FPS) - frames_done
 			frames_done += frames
 			clip = folder / f"{n:03d}.mp4"
-			self.clip(clip, paragraph, verses.index(verse) + 1, frames, n == 0, n == len(units) - 1, i == 0, i == count - 1)
+			self.clip(clip, paragraph, verses.index(verse) + 1, frames, n == 0, n == len(units) - 1, i == 0, i == count - 1, (frames_done - frames) / self.FPS)
 			clips.append(clip)
 		list_file = folder / "clips.txt"
 		list_file.write_text(''.join(f"file '{clip.resolve()}'\n" for clip in clips))
@@ -321,22 +332,77 @@ class ParashahVideo(Video):
 	def __init__(self, parashah, size):
 		super().__init__(size)
 		self.parashah = parashah
+		self.audiobible = AudioBible.get_instance()
 
 	@property
 	def filename(self):
 		return str(Asset.TORAH_FOLDER / f'torah-{self.parashah.number:02d}.mp4')
 
+	def generate_assets(self):
+		ParashahOverlay(self.parashah, size=self.size).export()
+		for number in range(1, len(self.parashah.paragraphs) + 1):
+			ParashahParagraphSlide(self.parashah, number, size=self.size).export()
+
+	@property
+	def audio_stream(self):
+		from Audio import ParashahAudio
+		return ParashahAudio(self.parashah).stream
+
+	def plate(self, name, frames, fade_in=None, fade_out=None):
+		image = ffmpeg.input(os.path.join(BUILD_FOLDER, "images", "parashot", name), loop=1, framerate=self.FPS, t=frames / self.FPS)
+		image = image.filter('scale', self.width, self.height).filter('format', 'rgba')
+		if fade_in:
+			image = image.filter('fade', type='in', alpha=fade_in[0], duration=self.FADE_DURATION)
+		if fade_out:
+			image = image.filter('fade', type='out', alpha=fade_out[0], start_time=frames / self.FPS - self.FADE_DURATION, duration=self.FADE_DURATION)
+		return image
+
+	def background(self, start, duration):
+		fog_name = "back-720x1280.mp4" if not self.landscape else "back-1280x720.mp4"
+		fog_path = os.path.join(ASSETS_FOLDER, fog_name)
+		fog_length = float(ffmpeg.probe(fog_path)['format']['duration'])
+		background = ffmpeg.input(fog_path, stream_loop=-1, ss=start % fog_length, t=duration)
+		background = background.filter('scale', self.width, self.height, force_original_aspect_ratio='increase')
+		background = background.filter('crop', w=self.width, h=self.height)
+		r, g, b = self.parashah.color
+		color_overlay = ffmpeg.input(f'color=c=#{r:02x}{g:02x}{b:02x}:s={self.width}x{self.height}', f='lavfi', t=duration)
+		return ffmpeg.filter([background, color_overlay], 'blend', all_mode='overlay', all_opacity=self.BACKGROUND_OPACITY)
+
+	def clip(self, filename, paragraph, verse_index, frames, first, last, first_in_paragraph, last_in_paragraph, start):
+		"""One verse as its own small video, so ffmpeg never holds the whole parashah in memory."""
+		prefix = f"{self.parashah.number}.{paragraph}"
+		background = self.background(start, frames / self.FPS)
+		base = self.plate(f"{prefix}.0.png", frames, fade_in=(0,) if first_in_paragraph else None, fade_out=(0,) if last_in_paragraph else None)
+		highlight = self.plate(f"{prefix}.{verse_index}.png", frames, fade_in=(1,), fade_out=(1,))
+		title = self.plate(f"{self.parashah.number:02d}_parashah_title.png", frames,
+						   fade_in=(0,) if first else None, fade_out=(0,) if last else None)
+		video = ffmpeg.overlay(background, ffmpeg.overlay(base, highlight), format='auto', shortest=1)
+		video = ffmpeg.overlay(video, title, format='auto', shortest=1)
+		ffmpeg.output(video, str(filename), vcodec='libx264', preset='veryfast', crf=23, pix_fmt='yuv420p', r=self.FPS,
+					  **{'frames:v': frames}).run(overwrite_output=True)
+
 	def export(self):
+		self.generate_assets()
 		Path(self.filename).parent.mkdir(parents=True, exist_ok=True)
-		files = []
-		for episode in self.parashah.episodes:
-			video = EpisodeVideo(episode, size=self.size)
-			if not Path(video.filename).exists():
-				video.export()
-			files.append(video.filename)
-		list_file = Path(BUILD_FOLDER) / f'torah-{self.parashah.number:02d}.txt'
-		list_file.parent.mkdir(parents=True, exist_ok=True)
-		list_file.write_text(''.join(f"file '{Path(f).resolve()}'\n" for f in files))
+		folder = Path(BUILD_FOLDER) / "clips" / f"torah-{self.parashah.number:02d}"
+		folder.mkdir(parents=True, exist_ok=True)
+		verses = self.parashah.verses
+		units = [(number, verse, i, len(paragraph.verses))
+				 for number, paragraph in enumerate(self.parashah.paragraphs, 1)
+				 for i, verse in enumerate(paragraph.verses)]
+		clips = []
+		elapsed = 0.0
+		frames_done = 0
+		for n, (number, verse, i, count) in enumerate(units):
+			elapsed += self.FADE_DURATION + self.audiobible.cloned_duration(verse) + self.FADE_DURATION
+			frames = round(elapsed * self.FPS) - frames_done
+			frames_done += frames
+			clip = folder / f"{n:03d}.mp4"
+			self.clip(clip, number, verses.index(verse) + 1, frames, n == 0, n == len(units) - 1, i == 0, i == count - 1, (frames_done - frames) / self.FPS)
+			clips.append(clip)
+		list_file = folder / "clips.txt"
+		list_file.write_text(''.join(f"file '{clip.resolve()}'\n" for clip in clips))
+		video = ffmpeg.input(str(list_file), f='concat', safe=0)
 		part = Path(self.filename).with_suffix('.part.mp4')
-		ffmpeg.input(str(list_file), f='concat', safe=0).output(str(part), c='copy').run(overwrite_output=True)
+		ffmpeg.output(video.video, self.audio_stream, str(part), vcodec='copy', acodec='aac', audio_bitrate='192k').run(overwrite_output=True)
 		os.replace(part, self.filename)

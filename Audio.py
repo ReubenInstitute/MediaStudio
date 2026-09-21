@@ -310,6 +310,23 @@ class ParashahAudio():
 		audio.add(TCOP(encoding=3, text=''))
 		audio.save(filename, v2_version=3)
 
+	@property
+	def segments(self):
+		audiobible = AudioBible.get_instance()
+		segments = []
+		for verse in self.parashah.verses:
+			segments.append(ffmpeg.concat(
+				ffmpeg.input('anullsrc=r=44100:cl=stereo', t=FADE_DURATION, f='lavfi').audio,
+				ffmpeg.input(audiobible.cloned_mp3(verse)).audio.filter('asetpts', 'PTS-STARTPTS'),
+				ffmpeg.input('anullsrc=r=44100:cl=stereo', t=FADE_DURATION, f='lavfi').audio,
+				v=0, a=1
+			))
+		return segments
+
+	@property
+	def stream(self):
+		return ffmpeg.concat(*self.segments, v=0, a=1).node[0]
+
 	def export_mp3(self):
 		Asset.TORAH_FOLDER.mkdir(parents=True, exist_ok=True)
 		files = []

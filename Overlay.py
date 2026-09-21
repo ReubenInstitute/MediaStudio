@@ -272,15 +272,18 @@ class EpisodeOverlay(Image):
 
 	@property
 	def image(self):
-		image = PILImage.new('RGBA', (self.width, self.height), (0, 0, 0, 0))
-		logo = PILImage.open("logo.png").resize((108, 108))
+		self._image = PILImage.new('RGBA', (self.width, self.height), (0, 0, 0, 0))
+		logo_size = int(self.height * 0.15)
+		logo_x = int(self.width * 0.1)
+		logo_y = int(self.height * 0.045)
+		logo = PILImage.open("logo.png").resize((logo_size, logo_size))
 		logo = Image.add_shadow(logo)
-		image.paste(logo, (306, 100), logo)
-		self._image = image
-		self.draw_text((360, 248), f"פרשת {self.episode.parashah.hebrew_name}",
-				PARASHAH_TITLE_FONT, 30, color="#ffffff", anchor="mm", direction="rtl")
-		self.draw_text((360, 308), self.episode.hebrew_title.replace('\u2028', ' '),
-				PARASHAH_SUBTITLE_FONT, 60, color="#ffffff", anchor="mm", direction="rtl")
+		self._image.paste(logo, (logo_x - Image.SHADOW_PAD, logo_y - Image.SHADOW_PAD), logo)
+		parashah = self.episode.parashah
+		self.draw_text((self.width // 2, int(self.height * 0.10)), f"ספר {parashah.book.hebrew_name}",
+				PARASHAH_TITLE_FONT, int(self.height * 30 / 720), color="#ffffff", anchor="mm", direction="rtl")
+		self.draw_text((self.width // 2, int(self.height * 0.19)), f"פרשת {parashah.hebrew_name}",
+				PARASHAH_SUBTITLE_FONT, int(self.height * 60 / 720), color="#ffffff", anchor="mm", direction="rtl")
 		return self._image
 
 
@@ -297,12 +300,17 @@ class ParashahOverlay(Image):
 
 	@property
 	def image(self):
-		image = PILImage.new('RGBA', (self.width, self.height), (0, 0, 0, 0))
-		logo = PILImage.open("logo.png").resize((108, 108))
-		image.paste(logo, (306, 100), logo)
-		self._image = image
-		self.draw_text((360, 248), f"פרשת {self.parashah.hebrew_name}",
-				"OpenSansHebrewCondensed-Bold.ttf", 30, color="#ffffff", anchor="mm", direction="rtl")
+		self._image = PILImage.new('RGBA', (self.width, self.height), (0, 0, 0, 0))
+		logo_size = int(self.height * 0.15)
+		logo_x = int(self.width * 0.1)
+		logo_y = int(self.height * 0.045)
+		logo = PILImage.open("logo.png").resize((logo_size, logo_size))
+		logo = Image.add_shadow(logo)
+		self._image.paste(logo, (logo_x - Image.SHADOW_PAD, logo_y - Image.SHADOW_PAD), logo)
+		self.draw_text((self.width // 2, int(self.height * 0.10)), f"ספר {self.parashah.book.hebrew_name}",
+				PARASHAH_TITLE_FONT, int(self.height * 30 / 720), color="#ffffff", anchor="mm", direction="rtl")
+		self.draw_text((self.width // 2, int(self.height * 0.19)), f"פרשת {self.parashah.hebrew_name}",
+				PARASHAH_SUBTITLE_FONT, int(self.height * 60 / 720), color="#ffffff", anchor="mm", direction="rtl")
 		return self._image
 
 
@@ -424,6 +432,25 @@ class NarrationParagraphVersePlate(Plate):
 					self.footer, PARASHAH_FOOTER_FONT, 30,
 					color="#ffffff", anchor="mm", direction="rtl")
 		return self._image
+
+
+class ParashahParagraphVersePlate(NarrationParagraphVersePlate):
+	FOLDER = "parashot"
+
+	def __init__(self, parashah, paragraph, verse, size):
+		layout = parashah.paragraphs[paragraph-1].layout
+		super().__init__(layout, verse, size)
+		self.parashah = parashah
+		self.paragraph = paragraph
+
+	@property
+	def highlight(self):
+		return self.parashah.verses[self.verse-1].number if self.verse != 0 else None
+
+	@property
+	def filename(self):
+		return os.path.join(BUILD_FOLDER, "images", self.FOLDER,
+							f"{self.parashah.number}.{self.paragraph}.{self.verse}.png")
 
 
 class EpisodeParagraphVersePlate(NarrationParagraphVersePlate):
@@ -628,6 +655,38 @@ class PsalmVersePreview(Image):
 		self._image = self.background.convert('RGBA')
 		self._image.alpha_composite(PsalmOverlay(self.slide.psalm, self.size).image)
 		self._image.alpha_composite(PsalmVersePlate(self.slide, self.size).image)
+		return self._image
+
+
+class ParashahParagraphSlide(Asset):
+	def __init__(self, parashah, paragraph, size):
+		super().__init__(size)
+		self.parashah = parashah
+		self.paragraph = paragraph
+
+	def export(self):
+		paragraph = self.parashah.paragraphs[self.paragraph-1]
+		all_verses = self.parashah.verses
+		ParashahParagraphVersePlate(self.parashah, self.paragraph, verse=0, size=self.size).export()
+		for verse in paragraph.verses:
+			ParashahParagraphVersePlate(self.parashah, self.paragraph, verse=all_verses.index(verse) + 1, size=self.size).export()
+
+class ParashahVersePreview(PsalmVersePreview):
+	def __init__(self, parashah, paragraph, verse, size):
+		Image.__init__(self, size)
+		self.parashah = parashah
+		self.paragraph = paragraph
+		self.verse = verse
+
+	@property
+	def color(self):
+		return self.parashah.color
+
+	@property
+	def image(self):
+		self._image = self.background.convert('RGBA')
+		self._image.alpha_composite(ParashahOverlay(self.parashah, self.size).image)
+		self._image.alpha_composite(ParashahParagraphVersePlate(self.parashah, self.paragraph, self.verse, self.size).image)
 		return self._image
 
 

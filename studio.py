@@ -469,7 +469,7 @@ def save_parashah_audio_timing():
 
 @app.route('/parashot/generate/video/<int:parashah>/full')
 def generate_parashah_video(parashah):
-	ParashahVideo(bible.parashot[parashah-1], size=Media.SDV).export()
+	ParashahVideo(bible.parashot[parashah-1], size=Media.SDH).export()
 	return redirect(f'/parashot/{parashah}')
 
 @app.route('/parashot/generate/video/<int:parashah>/<int:episode>')
