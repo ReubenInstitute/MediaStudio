@@ -24,16 +24,16 @@
 
 <table>
 	<tr>
-		<th>Verse</th>
+		<th>#</th>
 		<th>Original</th>
-		<th>Generate Clone</th>
+		<th>Clone</th>
 		<th>Cloned</th>
-		<th>Edit Audio</th>
+		<th>Audio</th>
 		<th>Length</th>
 	</tr>
 	{% for verse in psalm.verses %}
 	<tr>
-		<td><a name="{{ verse.number }}">Verse {{ verse.number }}</a></td>
+		<td id="{{ verse.number }}">{{ verse.number }}</td>
 		<td>
 			{% if audio.has_original_audio(verse) %}
 			<div class="visual-player" data-audio="/audio/original/027.{{ '%03d' % psalm.number }}.{{ '%03d' % verse.number }}.mp3"></div>
@@ -62,22 +62,34 @@
 	{% endfor %}
 </table>
 
-<a class="button" href="/export/covers/{{ psalm.number }}">Export Covers</a>
-<hr/>
-<a class="button" href="/export/audio/{{ psalm.number }}">Export Audio</a>
-<a class="button" href="/export/audio/score/{{ psalm.number }}">Export Score Audio</a>
-<hr/>
-<a class="button" href="/export/video/horizontal/{{ psalm.number }}">Export H Video</a>
-<a class="button" href="/export/video/score/{{ psalm.number }}">Export Score Video</a>
-<a class="button" href="/export/video/score/horizontal/{{ psalm.number }}">Export Score H Video</a>
-<a class="button" href="/export/video/cinematic/{{ psalm.number }}">Export Cinematic Video</a>
-<hr/>
-<a class="button" href="/clone/{{ psalm.number }}">👥 Clone All Missing Verses</a>
-<a class="button" href="/{{ psalm.number }}/align">📐 Edit Grid (BPM)</a>
-<a class="button" href="/align/{{ psalm.number }}">📐</a>
-<hr/>
+<a class="button" href="/clone/{{ psalm.number }}">Clone Missing</a>
+<a class="button" href="/{{ psalm.number }}/align">Edit BPM</a>
+<a class="button" href="/align/{{ psalm.number }}">Word Align</a>
+
+<h2>Export</h2>
+<table class="layout">
+	<tr>
+		<td><a class="button" href="/export/audio/{{ psalm.number }}"><span class="solid">&#xf001;</span></a></td>
+		<td><a class="button" href="/export/audio/score/{{ psalm.number }}"><span class="solid">&#xf001;</span>&nbsp;Score</a></td>
+		<td></td>
+		<td><a class="button" href="/export/covers/{{ psalm.number }}">Covers</a></td>
+	</tr>
+	<tr>
+		<td><a class="button" href="/export/video/horizontal/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;H</a></td>
+		<td><a class="button" href="/export/video/score/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;Score</a></td>
+		<td><a class="button" href="/export/video/score/horizontal/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;Score&nbsp;H</a></td>
+		<td><a class="button" href="/export/video/cinematic/{{ psalm.number }}"><span class="solid">&#xf008;</span>&nbsp;Cinematic</a></td>
+	</tr>
+</table>
+
+<h2>Social</h2>
+{% set icons = {'tiktok': '&#xe07b;', 'instagram': '&#xf16d;', 'shorts': '&#xf167;', 'spotify': '&#xf1bc;', 'youtube': '&#xf167;', 'youtube title': '&#xf167;', 'whatsapp': '&#xf232;'} %}
 {% for name in descriptions %}
-<button onclick="clipboard('{{ name }}')">{{ name }}</button>
+<button onclick="clipboard('{{ name }}')"><span class="brands">{{ icons[name]|safe }}</span>&nbsp;{{ name|replace(' ', '&nbsp;')|safe }}</button>
+{% if name == 'tiktok' %}
+<button onclick="clipboard('tiktok')"><span class="brands">{{ icons['instagram']|safe }}</span>&nbsp;instagram</button>
+<button onclick="clipboard('tiktok')"><span class="brands">{{ icons['shorts']|safe }}</span>&nbsp;shorts</button>
+{% endif %}
 {% endfor %}
 
 <script>

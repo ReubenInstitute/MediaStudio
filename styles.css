@@ -9,6 +9,7 @@
 	--button-text: #f5f7f9;
 	--button-bg: #34557a;
 	--separator: #cccccc;
+	--table-border: #a9b2bd;
 }
 
 
@@ -23,6 +24,7 @@
 		--button-text: #1a1e23;
 		--button-bg: #7593c9;
 		--separator: #333333;
+		--table-border: #4b5563;
 	}
 }
 
@@ -32,32 +34,39 @@
 
 
 @font-face {
-	font-family: ubuntu;
-	src: url('/fonts/Ubuntu-Regular.ttf') format('truetype');
-}
-
-@font-face {
-	font-family: reuben;
-	src: url('/fonts/FrankCurledLamed/FrankCurledLamedRI.ttf') format('truetype');
-}
-
-@font-face {
-	font-family: sblhebrew;
-	src: url('/fonts/SBLHebrew.ttf') format('truetype');
-}
-
-@font-face {
-	font-family: text;
+	font-family: assistant;
 	src: url('/fonts/Assistant-Regular.ttf') format('truetype');
 	font-weight: normal;
 	font-style: normal;
 }
 
 @font-face {
-	font-family: text;
+	font-family: assistant;
 	src: url('/fonts/Assistant-Bold.ttf') format('truetype');
 	font-weight: bold;
 	font-style: normal;
+}
+
+@font-face {
+	font-family: frankcurledlamed;
+	src: url('/fonts/FrankCurledLamedRI.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: brands;
+	src: url('/fonts/fa-brands-400.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: solid;
+	src: url('/fonts/fa-solid-900.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: sblhebrew;
+	src: url('/fonts/SBLHebrew.ttf') format('truetype');
 }
 
 
@@ -70,7 +79,6 @@ body {
 	background-color: var(--background);
 	color: var(--text);
 	padding: 1rem;
-	font-family: text;
 	line-height: 1.3;
 }
 
@@ -231,7 +239,6 @@ section ul {
 textarea {
 	width: 100%;
 	height: 400px;
-	font-family: reuben;
 	font-size: 1.8em;
 }
 
@@ -240,18 +247,76 @@ textarea {
 	text-align: right;
 }
 
+.scriptures {
+	font-family: frankcurledlamed;
+}
+
+.assistant {
+	font-family: assistant;
+}
+
+.frank {
+	font-family: frankcurledlamed;
+}
+
+.brands {
+	font-family: brands;
+}
+
+.solid {
+	font-family: solid;
+	font-weight: 900;
+}
+
 .sbl {
 	font-family: sblhebrew;
 }
 
 button,
 a.button {
-	border: 1px solid;
-	display: block-inline;
-	padding: 0 10px;
-	color: var(--button-text);
+	display: inline-block;
+	box-sizing: border-box;
+	margin: 2px;
+	padding: 2px 12px;
+	border: 1px solid var(--button-bg);
+	border-radius: 3px;
 	background-color: var(--button-bg);
-	border-radius: 4px;
-	margin: 2px 2px;
-	}
+	color: var(--button-text);
+	font: inherit;
+	line-height: 1.3;
+	text-align: center;
+	text-decoration: none;
+	cursor: pointer;
+}
 
+button:hover,
+a.button:hover {
+	filter: brightness(1.15);
+}
+
+button:active,
+a.button:active {
+	filter: brightness(0.9);
+}
+
+
+table {
+	border-collapse: collapse;
+}
+
+th,
+td {
+	border: 1px solid var(--table-border);
+	padding: 2px 8px;
+}
+
+th {
+	background-color: var(--text);
+	color: var(--background);
+	text-align: start;
+}
+
+table.layout td {
+	border: none;
+	padding: 0;
+}
