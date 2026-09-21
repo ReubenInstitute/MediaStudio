@@ -3,6 +3,7 @@
 {% block content %}
 <h1>{{ parashah.hebrew_name }}</h1>
 <a href="/parashot/{{ parashah.number }}/edit">edit</a>
+{#
 <h2>Chapters</h2>
 <table>
 	<tr>
@@ -23,6 +24,37 @@
 	</tr>
 	{% endfor %}
 </table>
-<a href="/parashot/{{ parashah.number }}/export-audio">🔊 Export Audio</a>
-<a href="/parashot/generate/video/{{ parashah.number }}/full">🎬 Full Parashah Video</a>
+#}
+<section class="parashah scriptures rtl">
+	{% for paragraph in parashah.paragraphs %}
+	<section class="paragraph">
+		{% for line in paragraph.layout %}
+		<div class="line">
+			{% for word in line %}{{ word.text }}{{ word.spacer }}{% endfor %}
+		</div>
+		{% endfor %}
+	</section>
+	{% endfor %}
+</section>
+
+<h2>Export</h2>
+<table class="layout">
+	<tr>
+		<td><a class="button" href="/parashot/{{ parashah.number }}/export-audio"><span class="solid">&#xf001;</span></a></td>
+		<td><a class="button" href="/parashot/generate/video/{{ parashah.number }}/full"><span class="solid">&#xf008;</span></a></td>
+		<td><a class="button" href="/parashot/export/covers/{{ parashah.number }}"><span class="solid">&#xf03e;</span></a></td>
+	</tr>
+</table>
+
+<h2>Preview</h2>
+<section class="preview-wide">
+	<img src="/parashot/preview/parashah/{{ parashah.number }}/cover.png" loading="lazy">
+	{% set all_verses = parashah.verses %}
+	{% for paragraph in parashah.paragraphs %}
+	{% set outer = loop %}
+	{% for verse in paragraph.verses %}
+	<img src="/parashot/preview/parashah/{{ parashah.number }}/{{ outer.index }}/{{ all_verses.index(verse) + 1 }}.png" loading="lazy">
+	{% endfor %}
+	{% endfor %}
+</section>
 {% endblock %}

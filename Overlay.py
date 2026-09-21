@@ -637,6 +637,10 @@ class PsalmVersePreview(Image):
 		self.slide = slide
 
 	@property
+	def color(self):
+		return self.slide.psalm.color
+
+	@property
 	def background(self):
 		from Video import Video
 		still = BUILD_FOLDER / "images" / f"back-{self.width}x{self.height}.png"
@@ -647,7 +651,7 @@ class PsalmVersePreview(Image):
 			background = background.filter('crop', w=self.width, h=self.height)
 			background.output(str(still), vframes=1).run(overwrite_output=True, quiet=True)
 		background = PILImage.open(still).convert('RGB')
-		color = PILImage.new('RGB', background.size, self.slide.psalm.color)
+		color = PILImage.new('RGB', background.size, self.color)
 		return PILImage.blend(background, ImageChops.overlay(background, color), Video.BACKGROUND_OPACITY)
 
 	@property
@@ -657,19 +661,6 @@ class PsalmVersePreview(Image):
 		self._image.alpha_composite(PsalmVersePlate(self.slide, self.size).image)
 		return self._image
 
-
-class ParashahParagraphSlide(Asset):
-	def __init__(self, parashah, paragraph, size):
-		super().__init__(size)
-		self.parashah = parashah
-		self.paragraph = paragraph
-
-	def export(self):
-		paragraph = self.parashah.paragraphs[self.paragraph-1]
-		all_verses = self.parashah.verses
-		ParashahParagraphVersePlate(self.parashah, self.paragraph, verse=0, size=self.size).export()
-		for verse in paragraph.verses:
-			ParashahParagraphVersePlate(self.parashah, self.paragraph, verse=all_verses.index(verse) + 1, size=self.size).export()
 
 class ParashahVersePreview(PsalmVersePreview):
 	def __init__(self, parashah, paragraph, verse, size):
@@ -689,6 +680,19 @@ class ParashahVersePreview(PsalmVersePreview):
 		self._image.alpha_composite(ParashahParagraphVersePlate(self.parashah, self.paragraph, self.verse, self.size).image)
 		return self._image
 
+
+class ParashahParagraphSlide(Asset):
+	def __init__(self, parashah, paragraph, size):
+		super().__init__(size)
+		self.parashah = parashah
+		self.paragraph = paragraph
+
+	def export(self):
+		paragraph = self.parashah.paragraphs[self.paragraph-1]
+		all_verses = self.parashah.verses
+		ParashahParagraphVersePlate(self.parashah, self.paragraph, verse=0, size=self.size).export()
+		for verse in paragraph.verses:
+			ParashahParagraphVersePlate(self.parashah, self.paragraph, verse=all_verses.index(verse) + 1, size=self.size).export()
 
 
 class EpisodeParagraphSlide(Asset):

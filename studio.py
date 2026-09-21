@@ -9,7 +9,7 @@ import io
 import os
 import tls
 import csv
-from Overlay import PsalmCover, PsalmVerseSlide, PsalmVersePreview
+from Overlay import PsalmCover, ParashahCover, PsalmVerseSlide, PsalmVersePreview, ParashahVersePreview
 from Audio import PsalmAudio, ParashahAudio
 from Psalms import Psalms
 from Parashot import Parashot
@@ -466,6 +466,33 @@ def save_parashah_audio_timing():
 		next_verse = int(request.form['next_verse'])
 		return redirect(f'/parashot/{parashah.number}/{episode.number}/{next_verse}/audio')
 	return redirect(f'/parashot/{parashah.number}/{episode.number}/{idx - 1}/audio')
+
+@app.route('/parashot/preview/parashah/<int:number>/cover.png')
+def preview_parashah_cover(number):
+	if not 1 <= number <= 54:
+		abort(404)
+	png = io.BytesIO()
+	ParashahCover(bible.parashot[number-1], Media.SDH).image.save(png, 'PNG')
+	return Response(png.getvalue(), mimetype='image/png', headers={'Cache-Control': 'no-store'})
+
+@app.route('/parashot/preview/parashah/<int:number>/<int:paragraph>/<int:verse>.png')
+def preview_parashah_verse(number, paragraph, verse):
+	if not 1 <= number <= 54:
+		abort(404)
+	paragraphs = bible.parashot[number-1].paragraphs
+	if not 1 <= paragraph <= len(paragraphs):
+		abort(404)
+	if not 1 <= verse <= len(bible.parashot[number-1].verses):
+		abort(404)
+	image = ParashahVersePreview(bible.parashot[number-1], paragraph, verse, Media.SDH).image
+	png = io.BytesIO()
+	image.save(png, 'PNG')
+	return Response(png.getvalue(), mimetype='image/png', headers={'Cache-Control': 'no-store'})
+
+@app.route('/parashot/export/covers/<int:number>')
+def export_parashah_covers(number):
+	ParashahCover(bible.parashot[number-1], Media.SDH).export()
+	return redirect(f'/parashot/{number}')
 
 @app.route('/parashot/generate/video/<int:parashah>/full')
 def generate_parashah_video(parashah):
