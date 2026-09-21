@@ -1,3 +1,5 @@
 __pycache__/
 elevenlabs.txt
 build/
+studio-key.pem
+studio-cert.pem

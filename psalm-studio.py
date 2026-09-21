@@ -6,6 +6,7 @@ from Video import PsalmVideo
 import Media
 import re
 import os
+import tls
 import csv
 from Overlay import PsalmCover
 from Audio import PsalmAudio
@@ -364,4 +365,4 @@ def serve_file(filename):
 		abort(404)
 
 if __name__ == '__main__':
-	app.run(host='0.0.0.0', debug=True, port=5000)
+	app.run(host='0.0.0.0', debug=True, port=5000, ssl_context=tls.context())
