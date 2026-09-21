@@ -12,10 +12,11 @@ _extreme_chars_cache = {}
 
 
 def _get_extreme_chars(filename):
-	if filename in _extreme_chars_cache:
-		return _extreme_chars_cache[filename]
-
 	font_path = Path(FONT_FOLDER) / filename
+	key = (filename, font_path.stat().st_mtime)
+	if key in _extreme_chars_cache:
+		return _extreme_chars_cache[key]
+
 	pil_font = ImageFont.truetype(str(font_path), 80)
 
 	tt = TTFont(font_path)
@@ -56,7 +57,7 @@ def _get_extreme_chars(filename):
 				bottom_extreme = test_text
 
 	extreme_chars = top_extreme + bottom_extreme
-	_extreme_chars_cache[filename] = extreme_chars
+	_extreme_chars_cache[key] = extreme_chars
 	return extreme_chars
 
 

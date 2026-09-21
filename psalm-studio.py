@@ -5,10 +5,11 @@ import Hebrew
 from Video import PsalmVideo
 import Media
 import re
+import io
 import os
 import tls
 import csv
-from Overlay import PsalmCover
+from Overlay import PsalmCover, PsalmVerseSlide, PsalmVersePreview
 from Audio import PsalmAudio
 from Psalms import Psalms
 from AudioBible import AudioBible
@@ -251,6 +252,19 @@ def serve_audio_segment(book, frm, to):
 	)
 	audio_data, _ = process.communicate()
 	return Response(audio_data, mimetype='audio/wav')
+
+@app.route('/preview/psalm/<int:p>/<int:paragraph>/<int:verse>.png', defaults={'size': Media.SDV})
+@app.route('/preview/psalm/<int:p>/<int:paragraph>/<int:verse>/horizontal.png', defaults={'size': Media.HDH})
+def preview_psalm_verse(p, paragraph, verse, size):
+	if not 1 <= p <= 150:
+		abort(404)
+	psalm = bible.psalms[p - 1]
+	if not 1 <= paragraph <= len(psalm.paragraphs) or verse not in [v.number for v in psalm.paragraphs[paragraph - 1].verses]:
+		abort(404)
+	image = PsalmVersePreview(PsalmVerseSlide(psalm, paragraph, verse, size), size).image
+	png = io.BytesIO()
+	image.save(png, 'PNG')
+	return Response(png.getvalue(), mimetype='image/png', headers={'Cache-Control': 'no-store'})
 
 @app.route('/export/covers/<int:psalm_number>')
 def export_psalm_covers(psalm_number):

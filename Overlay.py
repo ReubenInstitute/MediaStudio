@@ -1,7 +1,7 @@
 import os
 import io
 import ffmpeg
-from PIL import Image as PILImage, ImageDraw, ImageFont, ImageFilter
+from PIL import Image as PILImage, ImageChops, ImageDraw, ImageFont, ImageFilter
 from Image import Image, Plate
 from Text import Word
 from HebrewNumbers import hebrew_fancy_number
@@ -494,6 +494,34 @@ class PsalmVersePlate(PoemVersePlate):
 	@property
 	def footer(self):
 		return self.slide.layout[0][0].verse.hebrew_fancy_number
+
+
+
+class PsalmVersePreview(Image):
+	def __init__(self, slide, size):
+		super().__init__(size)
+		self.slide = slide
+
+	@property
+	def background(self):
+		from Video import Video
+		still = BUILD_FOLDER / "images" / f"back-{self.width}x{self.height}.png"
+		if not still.exists():
+			still.parent.mkdir(parents=True, exist_ok=True)
+			background = ffmpeg.input(str(ASSETS_FOLDER / f"back-{self.width}x{self.height}.mp4"), ss=5)
+			background = background.filter('scale', self.width, self.height, force_original_aspect_ratio='increase')
+			background = background.filter('crop', w=self.width, h=self.height)
+			background.output(str(still), vframes=1).run(overwrite_output=True, quiet=True)
+		background = PILImage.open(still).convert('RGB')
+		color = PILImage.new('RGB', background.size, self.slide.psalm.color)
+		return PILImage.blend(background, ImageChops.overlay(background, color), Video.BACKGROUND_OPACITY)
+
+	@property
+	def image(self):
+		self._image = self.background.convert('RGBA')
+		self._image.alpha_composite(PsalmOverlay(self.slide.psalm, self.size).image)
+		self._image.alpha_composite(PsalmVersePlate(self.slide, self.size).image)
+		return self._image
 
 
 

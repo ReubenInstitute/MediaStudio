@@ -92,6 +92,24 @@
 {% endif %}
 {% endfor %}
 
+<h2>Preview</h2>
+<section class="preview">
+	{% for paragraph in psalm.paragraphs %}
+	{% for verse in paragraph.verses %}
+	<img src="/preview/psalm/{{ psalm.number }}/{{ paragraph.number }}/{{ verse.number }}.png" loading="lazy">
+	{% endfor %}
+	{% endfor %}
+</section>
+
+<h2>Preview HD</h2>
+<section class="preview-wide">
+	{% for paragraph in psalm.paragraphs %}
+	{% for verse in paragraph.verses %}
+	<img src="/preview/psalm/{{ psalm.number }}/{{ paragraph.number }}/{{ verse.number }}/horizontal.png" loading="lazy">
+	{% endfor %}
+	{% endfor %}
+</section>
+
 <script>
 const descriptions = {
 	{% for name, text in descriptions.items() %}

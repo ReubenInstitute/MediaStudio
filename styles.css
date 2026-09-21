@@ -320,3 +320,19 @@ table.layout td {
 	border: none;
 	padding: 0;
 }
+
+.preview {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1em;
+}
+
+.preview img {
+	width: 300px;
+}
+
+.preview-wide img {
+	display: block;
+	width: 100%;
+	margin-bottom: 1em;
+}
