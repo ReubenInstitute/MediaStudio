@@ -8,9 +8,7 @@
 	<section class="paragraph">
 		{% for line in paragraph %}
 		<div class="line">
-			{% for word in line %}
-			{{ word.text }}
-			{% endfor %}
+			{% for word in line %}{{ word.text }}{{ word.spacer }}{% endfor %}
 		</div>
 		{% endfor %}
 	</section>

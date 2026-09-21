@@ -385,7 +385,7 @@ class NarrationParagraphVersePlate(Plate):
 		margin = int(self.width * 0.15)
 		available_width = self.width - 2 * margin
 		font_size = 50
-		layout = [[Word(Hebrew.strip_cantillation(Hebrew.strip_hebrew_punctuation(Hebrew.strip_yhwh(word.text), strip_maqaf=False)), word.verse) for word in line] for line in self.layout]
+		layout = [[Word(Hebrew.strip_cantillation(Hebrew.strip_hebrew_punctuation(Hebrew.strip_yhwh(word.text), strip_maqaf=False)), word.verse, word.spacer) for word in line] for line in self.layout]
 
 		temp_canvas = ImageDraw.Draw(PILImage.new('RGB', (1, 1)))
 		total_height = 0
@@ -394,7 +394,7 @@ class NarrationParagraphVersePlate(Plate):
 			sublines = Plate.wrap(visual_line, PARASHAH_TEXT_FONT, font_size, available_width)
 			for line_words in sublines:
 				if line_words:
-					text = ' '.join(word.text for word in line_words)
+					text = ''.join(word.text + word.spacer for word in line_words).rstrip()
 					box = Image.bbox((0, 0), text, PARASHAH_TEXT_FONT, font_size, direction="rtl")
 					line_height = box[3] - box[1]
 					total_height += line_height
@@ -505,7 +505,7 @@ class PoemVersePlate(Plate):
 
 		total_height = 0
 		for line in self.slide.layout:
-			text = ' '.join(word.text for word in line)
+			text = ''.join(word.text + word.spacer for word in line).rstrip()
 			box = Image.bbox((0, 0), text, PSALM_TEXT_FONT, font.size)
 			total_height += (box[3] - box[1])
 
@@ -513,7 +513,7 @@ class PoemVersePlate(Plate):
 
 		first = 1
 		for line in self.slide.layout:
-			text = ' '.join(word.text for word in line)
+			text = ''.join(word.text + word.spacer for word in line).rstrip()
 			box = Image.bbox((0, 0), text, PSALM_TEXT_FONT, font.size)
 			line_height = box[3] - box[1]
 			self.draw_centered(0, y, self.width, line, PSALM_TEXT_FONT, font.size, "#ffffff", rtl=True,

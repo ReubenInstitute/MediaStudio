@@ -163,7 +163,7 @@ class Plate(Image):
 			total_height = 0
 			max_line_width = 0
 			for line in lines:
-				text = ' '.join(word.text for word in line)
+				text = ''.join(word.text + word.spacer for word in line).rstrip()
 				box = Image.bbox((0, 0), text, font_filename, font_size)
 				total_height += (box[3] - box[1]) * 1.3
 				max_line_width = max(max_line_width, box[2] - box[0])
@@ -183,14 +183,15 @@ class Plate(Image):
 		current_line = []
 		current_width = 0
 		for word in words:
-			word_width = Image.bbox((0, 0), word.text, font_filename, font_size)[2]
-			if current_line and current_width + space_width + word_width > width:
+			word_width = Image.bbox((0, 0), word.text + word.spacer.strip(), font_filename, font_size)[2]
+			gap = 0 if current_line and current_line[-1].spacer == Hebrew.MAQAF else space_width
+			if current_line and current_width + gap + word_width > width:
 				results.append(current_line)
 				current_line = [word]
 				current_width = word_width
 			else:
 				if current_line:
-					current_width += space_width
+					current_width += gap
 				current_line.append(word)
 				current_width += word_width
 		if current_line:
@@ -231,25 +232,21 @@ class Plate(Image):
 		if not words:
 			return
 		font = ImageFont.truetype(os.path.join(FONT_FOLDER, font_filename), font_size)
-		total_word_width = sum(Image.bbox((0, 0), word.text, font_filename, font_size)[2] for word in words)
-		num_gaps = len(words) - 1
-		if num_gaps > 0:
-			extra_space = (width - total_word_width) / num_gaps
-			spacing = extra_space
-		else:
-			spacing = 0
+		widths = [Image.bbox((0, 0), word.text + word.spacer.strip(), font_filename, font_size)[2] for word in words]
+		# a word joined to the next one with a maqaf takes no gap
+		gaps = [k for k in range(len(words) - 1) if (words[k + 1] if rtl else words[k]).spacer != Hebrew.MAQAF]
+		spacing = (width - sum(widths)) / len(gaps) if gaps else 0
 		current_x = x
 		for i, word in enumerate(words):
-			word_width = Image.bbox((0, 0), word.text, font_filename, font_size)[2]
-			self.draw_text((int(current_x), int(y)), word.text, font_filename, font_size,
+			self.draw_text((int(current_x), int(y)), word.text + word.spacer.strip(), font_filename, font_size,
 						   color=("#ffff00" if verse and word.verse.number == verse else color),
 						   shadow=True, direction="rtl" if rtl else "ltr")
-			current_x += word_width + spacing
+			current_x += widths[i] + (spacing if i in gaps else 0)
 
 	def draw_centered(self, x, y, width, words, font_filename, font_size, color, rtl=False, verse=None, highlight=None, first=1):
 		font = ImageFont.truetype(os.path.join(FONT_FOLDER, font_filename), font_size)
 		if verse is None and highlight is None:
-			text = ' '.join(word.text for word in words)
+			text = ''.join(word.text + word.spacer for word in words).rstrip()
 			bbox = Image.bbox((0, 0), text, font_filename, font_size)
 			text_width = bbox[2] - bbox[0]
 			center_x = x + (width - text_width) // 2
@@ -261,9 +258,9 @@ class Plate(Image):
 			if rtl:
 				numbered = list(reversed(numbered))
 			space_width = Image.bbox((0, 0), ' ', font_filename, font_size)[2]
-			widths = [Image.bbox((0, 0), word.text, font_filename, font_size)[2] for _, word in numbered]
+			widths = [Image.bbox((0, 0), word.text + word.spacer.strip(), font_filename, font_size)[2] for _, word in numbered]
 			# a word joined to the next one with a maqaf takes no space
-			gaps = [0 if (numbered[k + 1][1] if rtl else word).text.endswith(Hebrew.MAQAF) else space_width
+			gaps = [0 if (numbered[k + 1][1] if rtl else word).spacer == Hebrew.MAQAF else space_width
 					for k, (_, word) in enumerate(numbered[:-1])]
 			current_x = x + (width - sum(widths) - sum(gaps)) // 2
 			for k, (number, word) in enumerate(numbered):
@@ -271,7 +268,7 @@ class Plate(Image):
 					yellow = number == highlight
 				else:
 					yellow = word.verse and word.verse.number == verse
-				self.draw_text((int(current_x), int(y)), word.text, font_filename, font_size,
+				self.draw_text((int(current_x), int(y)), word.text + word.spacer.strip(), font_filename, font_size,
 							   color="#ffff00" if yellow else color,
 							   shadow=True, direction="rtl" if rtl else "ltr")
 				current_x += widths[k] + (gaps[k] if k < len(gaps) else 0)

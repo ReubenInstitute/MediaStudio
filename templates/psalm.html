@@ -11,9 +11,7 @@
 		<div class="verse">
 			{% for line in verse_lines %}
 			<div class="line">
-				{% for word in line %}
-				{{ word.text }}
-				{% endfor %}
+				{% for word in line %}{{ word.text }}{{ word.spacer }}{% endfor %}
 			</div>
 			{% endfor %}
 		</div>
