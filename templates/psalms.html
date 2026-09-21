@@ -10,17 +10,15 @@
 		<thead>
 			<tr>
 				<th>Psalm</th>
-				<th></th>
 				<th>Duration</th>
-				<th></th>
+				<th>Color</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for entry in book.psalms %}
 			{% set psalm = entry.psalm %}
 			<tr>
-				<td><a href="/{{ psalm.number }}">{{ psalm.hebrew_number }}</a></td>
-				<td><a href="/{{ psalm.number }}">{{ psalm.number }}</a></td>
+				<td><a href="/{{ psalm.number }}">{{ psalm.number }} ({{ psalm.hebrew_number }})</a></td>
 				<td>{{ entry.total_duration }}</td>
 				<td style="background-color: {% if entry.show_color %}rgb({{ psalm.color[0] }}, {{ psalm.color[1] }}, {{ psalm.color[2] }}){% else %}transparent{% endif %}; width: 50px;"></td>
 			</tr>
@@ -29,7 +27,6 @@
 		<tfoot>
 			<tr>
 				<td>Book Total:</td>
-				<td></td>
 				<td>{{ book.duration_total }}</td>
 				<td></td>
 			</tr>

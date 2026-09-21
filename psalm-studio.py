@@ -31,11 +31,11 @@ def index():
 		return f"{m}:{s:02d}"
 
 	book_ranges = [
-		(1, 41, "Book 1 (Psalms 1‑41)"),
-		(42, 72, "Book 2 (Psalms 42‑72)"),
-		(73, 89, "Book 3 (Psalms 73‑89)"),
-		(90, 106, "Book 4 (Psalms 90‑106)"),
-		(107, 150, "Book 5 (Psalms 107‑150)")
+		(1, 41, "Book 1"),
+		(42, 72, "Book 2"),
+		(73, 89, "Book 3"),
+		(90, 106, "Book 4"),
+		(107, 150, "Book 5")
 	]
 
 	books_data = []
