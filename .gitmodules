@@ -26,3 +26,7 @@
 	path = fonts
 	url = https://github.com/ReubenInstitute/Fonts.git
 	branch = main
+[submodule "audio/sources"]
+	path = audio/sources
+	url = https://github.com/ReubenInstitute/audiobible-shmueloff-source
+	branch = main
