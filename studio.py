@@ -120,6 +120,7 @@ def index():
 @app.route('/psalms/<int:p>')
 def psalm(p):
 	psalm = bible.psalms[p-1]
+	psalm.load()
 	audio = AudioBible.get_instance()
 
 	template = open('descriptions.md', 'r', encoding='utf-8').read()
@@ -145,6 +146,7 @@ def psalm(p):
 @app.route('/psalms/<int:p>/edit', methods=['GET'])
 def psalm_edit(p):
 	psalm = bible.psalms[p-1]
+	psalm.load()
 	return render_template('psalm_edit.html', psalm=psalm, p=p)
 
 @app.route('/psalms/<int:p>/edit', methods=['POST'])
@@ -158,6 +160,7 @@ def psalm_save(p):
 @app.route('/psalms/<int:p>/align')
 def psalm_align(p):
 	psalm = bible.psalms[p-1]
+	psalm.load()
 	alignment_path = 'csv/alignment.csv'
 	verse_data = []
 
@@ -205,6 +208,7 @@ def psalm_align(p):
 @app.route('/psalms/<int:p>/<int:v>/audio')
 def psalm_audio_edit(p, v):
 	psalm = bible.psalms[p - 1]
+	psalm.load()
 	verse = psalm.verses[v - 1]
 	audio = AudioBible.get_instance()
 
