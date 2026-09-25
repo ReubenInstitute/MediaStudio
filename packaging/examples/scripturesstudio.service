@@ -1,0 +1,14 @@
+# Sample systemd unit for running scripturesstudio under gunicorn.
+# Copy to /etc/systemd/system/scripturesstudio.service and adjust as needed.
+[Unit]
+Description=ScripturesStudio
+After=network.target
+
+[Service]
+WorkingDirectory=/usr/share/scripturesstudio
+ExecStart=/usr/bin/gunicorn3 --bind 127.0.0.1:5000 ScripturesStudio:app
+Restart=on-failure
+User=www-data
+
+[Install]
+WantedBy=multi-user.target

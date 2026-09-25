@@ -12,9 +12,9 @@ PKG_DIR="$REPO_ROOT/debian-pkg"
 rm -rf "$PKG_DIR"
 mkdir -p "$PKG_DIR/DEBIAN" "$PKG_DIR/usr/share/scripturesstudio/templates" \
 	"$PKG_DIR/usr/share/scripturesstudio/wavesurfer" "$PKG_DIR/usr/bin" \
-	"$PKG_DIR/usr/share/doc/scripturesstudio"
+	"$PKG_DIR/usr/share/doc/scripturesstudio/examples"
 cp packaging/deb/control "$PKG_DIR/DEBIAN/control"
-cp ScripturesStudio.py Asset.py Audio.py AudioBible.py Image.py Overlay.py Video.py tls.py \
+cp ScripturesStudio.py Asset.py Audio.py AudioBible.py Image.py Overlay.py Video.py \
    audio.js styles.css logo.png \
    "$PKG_DIR/usr/share/scripturesstudio/"
 cp -r templates/. "$PKG_DIR/usr/share/scripturesstudio/templates/"
@@ -22,6 +22,8 @@ cp -r wavesurfer/. "$PKG_DIR/usr/share/scripturesstudio/wavesurfer/"
 chmod +x "$PKG_DIR/usr/share/scripturesstudio/ScripturesStudio.py"
 ln -s ../share/scripturesstudio/ScripturesStudio.py "$PKG_DIR/usr/bin/scripturesstudio"
 cp GPL-3 "$PKG_DIR/usr/share/doc/scripturesstudio/copyright"
+cp packaging/examples/scripturesstudio.service packaging/examples/scripturesstudio.nginx.conf \
+   "$PKG_DIR/usr/share/doc/scripturesstudio/examples/"
 dpkg-deb --build --root-owner-group "$PKG_DIR" "scripturesstudio_${VERSION}_all.deb"
 rm -rf "$PKG_DIR"
 echo "Built scripturesstudio_${VERSION}_all.deb"
