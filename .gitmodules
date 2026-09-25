@@ -1,13 +1,13 @@
-[submodule "audio/cloned"]
-	path = audio/cloned
+[submodule "audio/shmueloff-darkknox2"]
+	path = audio/shmueloff-darkknox2
 	url = https://github.com/ReubenInstitute/audiobible-shmueloff-darkknox2
 	branch = main
-[submodule "audio/original"]
-	path = audio/original
+[submodule "audio/shmueloff-original"]
+	path = audio/shmueloff-original
 	url = https://github.com/ReubenInstitute/audiobible-shmueloff-original
 	branch = main
-[submodule "audio/english"]
-	path = audio/english
+[submodule "audio/darkknox2-english"]
+	path = audio/darkknox2-english
 	url = https://github.com/ReubenInstitute/audiobible-darkknox2-english
 	branch = main
 [submodule "audio/titles"]
@@ -26,7 +26,7 @@
 	path = fonts
 	url = https://github.com/ReubenInstitute/Fonts.git
 	branch = main
-[submodule "audio/sources"]
-	path = audio/sources
+[submodule "audio/shmueloff-source"]
+	path = audio/shmueloff-source
 	url = https://github.com/ReubenInstitute/audiobible-shmueloff-source
 	branch = main

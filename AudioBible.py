@@ -10,11 +10,11 @@ import Services
 ROOT = Path(__file__).parent
 AUDIO_FOLDER = ROOT / "audio"
 BUILD_FOLDER = ROOT / "build"
-TITLES_CSV = AUDIO_FOLDER / "titles.csv"
-ORIGINAL_CSV = AUDIO_FOLDER / 'original.csv'
-CLONED_CSV = AUDIO_FOLDER / 'cloned.csv'
-ENGLISH_CSV = AUDIO_FOLDER / 'english.csv'
-ALIGNMENT_CSV = AUDIO_FOLDER / 'alignment.csv'
+TITLES_CSV = AUDIO_FOLDER / "titles" / "titles.csv"
+ORIGINAL_CSV = AUDIO_FOLDER / "shmueloff-original" / "original.csv"
+CLONED_CSV = AUDIO_FOLDER / "shmueloff-darkknox2" / "cloned.csv"
+ENGLISH_CSV = AUDIO_FOLDER / "darkknox2-english" / "english.csv"
+ALIGNMENT_CSV = AUDIO_FOLDER / "shmueloff-darkknox2" / "alignment.csv"
 
 class AudioBible:
 	_instance = None
@@ -401,7 +401,7 @@ _load_timestamps()
 			wav.parent.mkdir(parents=True, exist_ok=True)
 			part = wav.with_suffix('.part.wav')
 			(ffmpeg
-				.input(str(AUDIO_FOLDER / "sources" / f"{book:02d}.mp3"))
+				.input(str(AUDIO_FOLDER / "shmueloff-source" / f"{book:02d}.mp3"))
 				.output(str(part), acodec='pcm_s16le', ac=1)
 				.overwrite_output()
 				.run()
@@ -411,12 +411,12 @@ _load_timestamps()
 
 	def original_mp3(self, verse):
 		basename = f"{verse.chapter.book.number:03d}.{verse.chapter.number:03d}.{verse.number:03d}.mp3"
-		return AUDIO_FOLDER / "original" / basename
+		return AUDIO_FOLDER / "shmueloff-original" / basename
 
 	def cloned_mp3(self, verse):
 		basename = f"{verse.chapter.book.number:03d}.{verse.chapter.number:03d}.{verse.number:03d}.mp3"
-		return AUDIO_FOLDER / "cloned" / basename
+		return AUDIO_FOLDER / "shmueloff-darkknox2" / basename
 
 	def english_mp3(self, verse):
 		basename = f"{verse.chapter.book.number:03d}.{verse.chapter.number:03d}.{verse.number:03d}.mp3"
-		return AUDIO_FOLDER / "english" / basename
+		return AUDIO_FOLDER / "darkknox2-english" / basename
