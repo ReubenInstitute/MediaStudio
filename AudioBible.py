@@ -6,31 +6,29 @@ from mutagen.id3 import ID3, TIT2, COMM, TPE1, TPUB, TYER, TLAN, TRCK, TALB, TCO
 
 import Media
 import Services
+from Asset import BUILD_FOLDER
 
 ROOT = Path(__file__).resolve().parent
-INSTALLED_ROOT = Path("/usr/share/scripturesstudio")
+INSTALLED = ROOT == Path("/usr/share/scripturesstudio")
 
-if ROOT == INSTALLED_ROOT:
-	SOURCE_FOLDER = Path("/usr/share/audiobible/source")
-	ORIGINAL_FOLDER = Path("/var/lib/audiobible/original")
-	DARKKNOX2_FOLDER = Path("/var/lib/audiobible/darkknox2")
-	ENGLISH_FOLDER = Path("/var/lib/audiobible/english")
-	TITLES_FOLDER = Path("/var/lib/audiobible/titles")
-	BUILD_FOLDER = Path("/var/lib/scripturesstudio/build")
+if INSTALLED:
+	SOURCE_AUDIO_FOLDER = Path("/usr/share/audiobible/source")
+	ORIGINAL_AUDIO_FOLDER = Path("/var/lib/audiobible/original")
+	CLONED_AUDIO_FOLDER = Path("/var/lib/audiobible/cloned")
+	ENGLISH_AUDIO_FOLDER = Path("/var/lib/audiobible/english")
+	TITLES_AUDIO_FOLDER = Path("/var/lib/audiobible/titles")
 else:
-	AUDIO_FOLDER = ROOT / "audio"
-	SOURCE_FOLDER = AUDIO_FOLDER / "shmueloff-source"
-	ORIGINAL_FOLDER = AUDIO_FOLDER / "shmueloff-original"
-	DARKKNOX2_FOLDER = AUDIO_FOLDER / "shmueloff-darkknox2"
-	ENGLISH_FOLDER = AUDIO_FOLDER / "darkknox2-english"
-	TITLES_FOLDER = AUDIO_FOLDER / "titles"
-	BUILD_FOLDER = ROOT / "build"
+	SOURCE_AUDIO_FOLDER = ROOT / "audio" / "shmueloff-source"
+	ORIGINAL_AUDIO_FOLDER = ROOT / "audio" / "shmueloff-original"
+	CLONED_AUDIO_FOLDER = ROOT / "audio" / "shmueloff-darkknox2"
+	ENGLISH_AUDIO_FOLDER = ROOT / "audio" / "darkknox2-english"
+	TITLES_AUDIO_FOLDER = ROOT / "audio" / "titles"
 
-TITLES_CSV = TITLES_FOLDER / "titles.csv"
-ORIGINAL_CSV = ORIGINAL_FOLDER / "original.csv"
-CLONED_CSV = DARKKNOX2_FOLDER / "cloned.csv"
-ENGLISH_CSV = ENGLISH_FOLDER / "english.csv"
-ALIGNMENT_CSV = DARKKNOX2_FOLDER / "alignment.csv"
+TITLES_CSV = TITLES_AUDIO_FOLDER / "titles.csv"
+ORIGINAL_CSV = ORIGINAL_AUDIO_FOLDER / "original.csv"
+CLONED_CSV = CLONED_AUDIO_FOLDER / "cloned.csv"
+ENGLISH_CSV = ENGLISH_AUDIO_FOLDER / "english.csv"
+ALIGNMENT_CSV = CLONED_AUDIO_FOLDER / "alignment.csv"
 
 class AudioBible:
 	_instance = None
@@ -411,13 +409,13 @@ _load_timestamps()
 		)
 
 	def wav(self, book):
-		# the wav of a whole book is a temporary artifact, made from the book's mp3 in SOURCE_FOLDER
+		# the wav of a whole book is a temporary artifact, made from the book's mp3 in SOURCE_AUDIO_FOLDER
 		wav = BUILD_FOLDER / "wav" / f"{book:02d}.wav"
 		if not wav.exists():
 			wav.parent.mkdir(parents=True, exist_ok=True)
 			part = wav.with_suffix('.part.wav')
 			(ffmpeg
-				.input(str(SOURCE_FOLDER / f"{book:02d}.mp3"))
+				.input(str(SOURCE_AUDIO_FOLDER / f"{book:02d}.mp3"))
 				.output(str(part), acodec='pcm_s16le', ac=1)
 				.overwrite_output()
 				.run()
@@ -427,12 +425,12 @@ _load_timestamps()
 
 	def original_mp3(self, verse):
 		basename = f"{verse.chapter.book.number:03d}.{verse.chapter.number:03d}.{verse.number:03d}.mp3"
-		return ORIGINAL_FOLDER / basename
+		return ORIGINAL_AUDIO_FOLDER / basename
 
 	def cloned_mp3(self, verse):
 		basename = f"{verse.chapter.book.number:03d}.{verse.chapter.number:03d}.{verse.number:03d}.mp3"
-		return DARKKNOX2_FOLDER / basename
+		return CLONED_AUDIO_FOLDER / basename
 
 	def english_mp3(self, verse):
 		basename = f"{verse.chapter.book.number:03d}.{verse.chapter.number:03d}.{verse.number:03d}.mp3"
-		return ENGLISH_FOLDER / basename
+		return ENGLISH_AUDIO_FOLDER / basename

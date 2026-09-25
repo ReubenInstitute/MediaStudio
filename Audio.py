@@ -7,14 +7,10 @@ from mutagen.id3 import ID3, TIT2, COMM, TPE1, TPUB, TYER, TLAN, TRCK, TALB, TCO
 import HebrewNumbers
 import Media
 
-from AudioBible import AudioBible
+from AudioBible import AudioBible, TITLES_AUDIO_FOLDER
 #from BiblePsalms import BiblePsalm
 import Asset
 
-
-AUDIO_FOLDER = "audio"
-ASSETS_FOLDER = 'assets'
-OUTPUT_FOLDER = "output"
 
 FADE_DURATION = 0.5
 
@@ -34,7 +30,7 @@ class PsalmAudio:
 	def segments(self):
 		segments_list = []
 
-		title_path = Asset.TITLES_FOLDER / f'psalm{self.psalm.number:03d}.mp3'
+		title_path = TITLES_AUDIO_FOLDER / f'psalm{self.psalm.number:03d}.mp3'
 		title_seg = ffmpeg.concat(
 			ffmpeg.input('anullsrc=r=44100:cl=stereo', t=Asset.FADE_DURATION, f='lavfi').audio,
 			ffmpeg.input(title_path).audio.filter('asetpts', 'PTS-STARTPTS'),
@@ -151,7 +147,7 @@ class ODSPsalmAudio:
 	
 	@property
 	def music(self):
-		music_file = os.path.join(ASSETS_FOLDER, f'{self.psalm.number:03d}.mp3')
+		music_file = os.path.join(Asset.ASSETS_FOLDER, f'{self.psalm.number:03d}.mp3')
 		if os.path.exists(music_file):
 			return ffmpeg.input(music_file).audio
 		return None
@@ -161,7 +157,7 @@ class ODSPsalmAudio:
 		segments_list = []
 	
 		# Title
-		title_path = Path(AUDIO_FOLDER) / 'titles' / f'psalm{self.psalm.number:03d}.mp3'
+		title_path = TITLES_AUDIO_FOLDER / f'psalm{self.psalm.number:03d}.mp3'
 		title_seg = ffmpeg.concat(
 			ffmpeg.input('anullsrc=r=44100:cl=stereo', t=Asset.FADE_DURATION, f='lavfi').audio,
 			ffmpeg.input(title_path).audio.filter('asetpts', 'PTS-STARTPTS'),
@@ -266,7 +262,7 @@ class ODSPsalmAudio:
 			'קריינות: אברהם שמואלוב (הוקלט בשנות ה‑70), שוחזרה באמצעות ElevenLabs. מוזיקת רקע: Suno AI v5. סדרת תהילים של מכון ראובן.'
 		]
 
-		cover_path = os.path.join(OUTPUT_FOLDER, f'psalms/covers/psalm{self.psalm.number:03d}.jpg')
+		cover_path = os.path.join(Asset.OUTPUT_FOLDER, f'psalms/covers/psalm{self.psalm.number:03d}.jpg')
 
 		tags = dict(common_tags)
 		tags['image'] = cover_path
@@ -277,14 +273,14 @@ class ODSPsalmAudio:
 	def export(self, bare=False):
 		stream_to_export = self.stream if bare else (self.enhanced_stream if self.music else self.stream)
 		suffix = '-bare' if bare else ''
-		filename = os.path.join(OUTPUT_FOLDER, f'{self.basename}{suffix}.mp3')
+		filename = os.path.join(Asset.OUTPUT_FOLDER, f'{self.basename}{suffix}.mp3')
 		ffmpeg.output(stream_to_export, filename, acodec='mp3').overwrite_output().run()
 		self.set_tags(filename, bare=bare)
 
 	def export_sln(self, bare=False):
 		stream_to_export = self.stream if bare else (self.enhanced_stream if self.music else self.stream)
 		suffix = '-bare' if bare else ''
-		filename = os.path.join(OUTPUT_FOLDER, f'{self.basename}{suffix}.sln')
+		filename = os.path.join(Asset.OUTPUT_FOLDER, f'{self.basename}{suffix}.sln')
 		ffmpeg.output(stream_to_export, filename, acodec='pcm_s16le', ar='8000', ac=1, f='s16le').overwrite_output().run()
 
 

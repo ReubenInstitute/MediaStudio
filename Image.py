@@ -1,18 +1,16 @@
 import os
 from PIL import Image as PILImage, ImageDraw, ImageFont, ImageFilter
-from Asset import Asset
+from Asset import Asset, FONTS_FOLDER
 from Text import Word
 import Hebrew
 from fontTools.ttLib import TTFont
 
 from pathlib import Path
-
-FONT_FOLDER = "fonts"
 _extreme_chars_cache = {}
 
 
 def _get_extreme_chars(filename):
-	font_path = Path(FONT_FOLDER) / filename
+	font_path = Path(FONTS_FOLDER) / filename
 	key = (filename, font_path.stat().st_mtime)
 	if key in _extreme_chars_cache:
 		return _extreme_chars_cache[key]
@@ -102,7 +100,7 @@ class Image(Asset):
 	def bbox(xy, text, font_filename, font_size, direction=None):
 		temp_img = PILImage.new('RGB', (1, 1))
 		temp_canvas = ImageDraw.Draw(temp_img)
-		font = ImageFont.truetype(os.path.join(FONT_FOLDER, font_filename), font_size)
+		font = ImageFont.truetype(os.path.join(FONTS_FOLDER, font_filename), font_size)
 		extreme_chars = _get_extreme_chars(font_filename)
 		if not extreme_chars:
 			return temp_canvas.textbbox(xy, text, font=font, direction=direction)
@@ -113,7 +111,7 @@ class Image(Asset):
 
 	def draw_text(self, xy, text, font_filename, font_size, color=None, shadow=True, anchor=None, direction=None):
 		actual_color = color if color is not None else "#FFFFFF"
-		font = ImageFont.truetype(os.path.join(FONT_FOLDER, font_filename), font_size)
+		font = ImageFont.truetype(os.path.join(FONTS_FOLDER, font_filename), font_size)
 		extreme_chars = _get_extreme_chars(font_filename)
 	
 		# Use a temporary canvas for measurement
@@ -158,7 +156,7 @@ class Plate(Image):
 		best_font = ImageFont.load_default()
 		while font_size > 20:
 			try:
-				current_font = ImageFont.truetype(os.path.join(FONT_FOLDER, font_filename), font_size)
+				current_font = ImageFont.truetype(os.path.join(FONTS_FOLDER, font_filename), font_size)
 			except IOError:
 				current_font = ImageFont.load_default()
 			total_height = 0
@@ -178,7 +176,7 @@ class Plate(Image):
 	def wrap(words, font_filename, font_size, width):
 		if not words:
 			return []
-		font = ImageFont.truetype(os.path.join(FONT_FOLDER, font_filename), font_size)
+		font = ImageFont.truetype(os.path.join(FONTS_FOLDER, font_filename), font_size)
 		space_width = Image.bbox((0, 0), ' ', font_filename, font_size)[2]
 		results = []
 		current_line = []
@@ -202,7 +200,7 @@ class Plate(Image):
 	def draw_left_aligned(self, x, y, width, words, font_filename, font_size, color, rtl=False, verse=None):
 		if rtl:
 			words = list(reversed(words))
-		font = ImageFont.truetype(os.path.join(FONT_FOLDER, font_filename), font_size)
+		font = ImageFont.truetype(os.path.join(FONTS_FOLDER, font_filename), font_size)
 		space_width = Image.bbox((0, 0), ' ', font_filename, font_size)[2]
 		current_x = x
 		for word in words:
@@ -215,7 +213,7 @@ class Plate(Image):
 	def draw_right_aligned(self, x, y, width, words, font_filename, font_size, color, rtl=False, verse=None):
 		if rtl:
 			words = list(reversed(words))
-		font = ImageFont.truetype(os.path.join(FONT_FOLDER, font_filename), font_size)
+		font = ImageFont.truetype(os.path.join(FONTS_FOLDER, font_filename), font_size)
 		space_width = Image.bbox((0, 0), ' ', font_filename, font_size)[2]
 		total_width = sum(Image.bbox((0, 0), word.text, font_filename, font_size)[2] for word in words)
 		total_width += space_width * (len(words) - 1)
@@ -232,7 +230,7 @@ class Plate(Image):
 			words = list(reversed(words))
 		if not words:
 			return
-		font = ImageFont.truetype(os.path.join(FONT_FOLDER, font_filename), font_size)
+		font = ImageFont.truetype(os.path.join(FONTS_FOLDER, font_filename), font_size)
 		widths = [Image.bbox((0, 0), word.text + word.spacer.strip(), font_filename, font_size)[2] for word in words]
 		# a word joined to the next one with a maqaf takes no gap
 		gaps = [k for k in range(len(words) - 1) if (words[k + 1] if rtl else words[k]).spacer != Hebrew.MAQAF]
@@ -245,7 +243,7 @@ class Plate(Image):
 			current_x += widths[i] + (spacing if i in gaps else 0)
 
 	def draw_centered(self, x, y, width, words, font_filename, font_size, color, rtl=False, verse=None, highlight=None, first=1):
-		font = ImageFont.truetype(os.path.join(FONT_FOLDER, font_filename), font_size)
+		font = ImageFont.truetype(os.path.join(FONTS_FOLDER, font_filename), font_size)
 		if verse is None and highlight is None:
 			text = ''.join(word.text + word.spacer for word in words).rstrip()
 			bbox = Image.bbox((0, 0), text, font_filename, font_size)

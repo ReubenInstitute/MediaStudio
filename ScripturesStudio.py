@@ -8,15 +8,16 @@ import Media
 import re
 import io
 import os
-import tls
 import csv
+from pathlib import Path
+from Asset import STATIC_FOLDER, TEMPLATES_FOLDER
 from Overlay import PsalmCover, ParashahCover, PsalmVerseSlide, PsalmVersePreview, ParashahVersePreview
 from Audio import PsalmAudio, ParashahAudio
 from Psalms import Psalms
 from Parashot import Parashot
 from AudioBible import AudioBible
 
-app = Flask(__name__, template_folder="templates")
+app = Flask(__name__, template_folder=str(TEMPLATES_FOLDER))
 bible = Bible()
 bible.psalms = Psalms(bible)
 bible.parashot = Parashot(bible)
@@ -576,10 +577,11 @@ def hebrew_dagesh_hazzak():
 
 @app.route('/<path:filename>')
 def serve_file(filename):
-	if os.path.exists(filename):
-		return send_file(f"{filename}")
+	path = STATIC_FOLDER / filename
+	if path.exists():
+		return send_file(path)
 	else:
 		abort(404)
 
 if __name__ == '__main__':
-	app.run(host='0.0.0.0', debug=True, port=5000, ssl_context=tls.context())
+	app.run(host='0.0.0.0', debug=True, port=5000)

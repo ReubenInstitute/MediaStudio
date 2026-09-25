@@ -3,18 +3,22 @@ from pathlib import Path
 FADE_DURATION = 0.5
 
 ROOT = Path(__file__).resolve().parent
-INSTALLED_ROOT = Path("/usr/share/scripturesstudio")
+INSTALLED = ROOT == Path("/usr/share/scripturesstudio")
 
-if ROOT == INSTALLED_ROOT:
-	AUDIO_FOLDER  = Path("/var/lib/audiobible")
+if INSTALLED:
 	ASSETS_FOLDER = Path("/var/lib/scripturesstudio/assets")
-	TITLES_FOLDER = AUDIO_FOLDER / "titles"
+	FONTS_FOLDER  = Path("/usr/share/fonts/reubeninstitute")
+	OUTPUT_FOLDER = Path("/var/lib/scripturesstudio/output")
+	STATIC_FOLDER = ROOT / "@@"
+	TEMPLATES_FOLDER = ROOT / "templates"
 else:
-	AUDIO_FOLDER  = Path("audio")
-	ASSETS_FOLDER = Path("assets")
-	TITLES_FOLDER = AUDIO_FOLDER / "titles"
+	ASSETS_FOLDER = ROOT / "assets"
+	FONTS_FOLDER  = ROOT / "fonts"
+	OUTPUT_FOLDER = ROOT / "output"
+	STATIC_FOLDER = ROOT
+	TEMPLATES_FOLDER = ROOT / "templates"
 
-OUTPUT_FOLDER   = Path("output")
+BUILD_FOLDER = Path.home() / ".scripturesstudio" / "build"
 
 PSALMS_FOLDER	  = OUTPUT_FOLDER / "psalms"
 PSALMS_PLUS_FOLDER = OUTPUT_FOLDER / "psalms+"

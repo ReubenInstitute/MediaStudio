@@ -6,7 +6,7 @@ from Image import Image, Plate
 from Text import Word
 from HebrewNumbers import hebrew_fancy_number
 import Hebrew
-from Asset import Asset
+from Asset import Asset, OUTPUT_FOLDER, ASSETS_FOLDER, BUILD_FOLDER, STATIC_FOLDER
 import Media
 from pathlib import Path
 
@@ -28,9 +28,6 @@ PARASHAH_SUBTITLE_FONT = "OpenSansHebrewCondensed-Regular.ttf"
 PARASHAH_TEXT_FONT = "OpenSansHebrewCondensedRI-Regular.ttf"
 PARASHAH_FOOTER_FONT = "OpenSansHebrewCondensed-Bold.ttf"
 
-OUTPUT_FOLDER = Path("output")
-ASSETS_FOLDER = Path("assets")
-BUILD_FOLDER = Path("build")
 
 
 
@@ -276,7 +273,7 @@ class EpisodeOverlay(Image):
 		logo_size = int(self.height * 0.15)
 		logo_x = int(self.width * 0.1)
 		logo_y = int(self.height * 0.045)
-		logo = PILImage.open("logo.png").resize((logo_size, logo_size))
+		logo = PILImage.open(STATIC_FOLDER / "logo.png").resize((logo_size, logo_size))
 		logo = Image.add_shadow(logo)
 		self._image.paste(logo, (logo_x - Image.SHADOW_PAD, logo_y - Image.SHADOW_PAD), logo)
 		parashah = self.episode.parashah
@@ -304,7 +301,7 @@ class ParashahOverlay(Image):
 		logo_size = int(self.height * 0.15)
 		logo_x = int(self.width * 0.1)
 		logo_y = int(self.height * 0.045)
-		logo = PILImage.open("logo.png").resize((logo_size, logo_size))
+		logo = PILImage.open(STATIC_FOLDER / "logo.png").resize((logo_size, logo_size))
 		logo = Image.add_shadow(logo)
 		self._image.paste(logo, (logo_x - Image.SHADOW_PAD, logo_y - Image.SHADOW_PAD), logo)
 		self.draw_text((self.width // 2, int(self.height * 0.10)), f"ספר {self.parashah.book.hebrew_name}",
@@ -348,7 +345,7 @@ class PsalmOverlay(Image):
 		LOGO_Y = 0.085
 		LOGO_Y = 0.045
 		logo_y = int(self.height * LOGO_Y)
-		logo = PILImage.open("logo.png").resize((logo_size, logo_size))
+		logo = PILImage.open(STATIC_FOLDER / "logo.png").resize((logo_size, logo_size))
 		logo = Image.add_shadow(logo)
 		self._image.paste(logo, (logo_x - Image.SHADOW_PAD, logo_y - Image.SHADOW_PAD), logo)
 		title_y = int(self.height * TITLE_Y)
