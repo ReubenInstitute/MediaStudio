@@ -2,11 +2,19 @@ from pathlib import Path
 
 FADE_DURATION = 0.5
 
-AUDIO_FOLDER	= Path("audio")
-ASSETS_FOLDER   = Path("assets")
-OUTPUT_FOLDER   = Path("output")
+ROOT = Path(__file__).resolve().parent
+INSTALLED_ROOT = Path("/usr/share/scripturesstudio")
 
-TITLES_FOLDER   = AUDIO_FOLDER / "titles"
+if ROOT == INSTALLED_ROOT:
+	AUDIO_FOLDER  = Path("/var/lib/audiobible")
+	ASSETS_FOLDER = Path("/var/lib/scripturesstudio/assets")
+	TITLES_FOLDER = AUDIO_FOLDER / "titles"
+else:
+	AUDIO_FOLDER  = Path("audio")
+	ASSETS_FOLDER = Path("assets")
+	TITLES_FOLDER = AUDIO_FOLDER / "titles"
+
+OUTPUT_FOLDER   = Path("output")
 
 PSALMS_FOLDER	  = OUTPUT_FOLDER / "psalms"
 PSALMS_PLUS_FOLDER = OUTPUT_FOLDER / "psalms+"

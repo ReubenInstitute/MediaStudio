@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from flask import Flask, send_file, request, Response, render_template, redirect, url_for, abort
 import ffmpeg
 from Bible import Bible
